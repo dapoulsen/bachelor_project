@@ -14,6 +14,7 @@ if (!code) {
     if(favoriteSong != null){
         populateFavoriteSong(favoriteSong);
     }
+    playFavoriteSong(favoriteSong, accessToken);
 }
 
 
@@ -27,7 +28,9 @@ export async function redirectToAuthCodeFlow(clientId: string) {
     params.append("client_id", clientId);
     params.append("response_type", "code");
     params.append("redirect_uri", "http://localhost:5173/");
-    params.append("scope", "user-read-private user-read-email user-top-read");
+    params.append("scope", 
+        "user-read-private user-read-email user-top-read user-modify-playback-state"
+    );
     params.append("code_challenge_method", "S256");
     params.append("code_challenge", challenge);
 
@@ -105,6 +108,7 @@ function populateFavoriteSong(track: SpotifyTrack) {
       <p>Artist: ${track.artists.map(artist => artist.name).join(", ")}</p>
       <img src="${track.album.images[0]?.url}" alt="${track.album.name}" width="200" />
       <p>Album: ${track.album.name}</p>
+      <p>Duration: ${track.duration_ms}</p>
     `;
   }
 
@@ -122,4 +126,27 @@ function populateUI(profile: UserProfile) {
     document.getElementById("url")!.innerText = profile.href;
     document.getElementById("url")!.setAttribute("href", profile.href);
     document.getElementById("imgUrl")!.innerText = profile.images[0]?.url ?? '(no profile image)';
+}
+
+async function playFavoriteSong(favoriteSong: SpotifyTrack | null, token: string) {
+    if (favoriteSong != null) {
+        const response = await fetch(`https://api.spotify.com/v1/me/player/queue?uri=${favoriteSong.uri}`, {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json"
+            }
+        });
+
+        if (!response.ok) {
+            console.error("Failed to add song to queue:", await response.json());
+        } else {
+            console.log("Song added to queue successfully!");
+        }
+    } else {
+        console.error("No favorite song provided");
+    }
+
+    console.log("Hejsa");
+    console.log(favoriteSong?.uri);
 }
