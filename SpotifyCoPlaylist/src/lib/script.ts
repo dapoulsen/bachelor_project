@@ -1,8 +1,7 @@
-import {UserProfile, SpotifyTopTracksResponse, SpotifyTrack,} from "./types";
+import type { UserProfile, SpotifyTopTracksResponse, SpotifyTrack, } from "./types";
 
-const clientId = "1aacc1c2967a41b18cb20bfaeefe8ff2";
-const params = new URLSearchParams(window.location.search);
-const code = params.get("code");
+export const clientId = "1aacc1c2967a41b18cb20bfaeefe8ff2";
+/*const code = params.get("code");
 
 if (!code) {
     redirectToAuthCodeFlow(clientId);
@@ -15,10 +14,10 @@ if (!code) {
         populateFavoriteSong(favoriteSong);
     }
     playFavoriteSong(favoriteSong, accessToken);
-}
-
+} */
 
 export async function redirectToAuthCodeFlow(clientId: string) {
+
     const verifier = generateCodeVerifier(128);
     const challenge = await generateCodeChallenge(verifier);
 
@@ -28,14 +27,13 @@ export async function redirectToAuthCodeFlow(clientId: string) {
     params.append("client_id", clientId);
     params.append("response_type", "code");
     params.append("redirect_uri", "http://localhost:5173/");
-    params.append("scope", 
-        "user-read-private user-read-email user-top-read user-modify-playback-state"
-    );
+    params.append("scope", "user-read-private user-read-email user-top-read user-modify-playback-state");
     params.append("code_challenge_method", "S256");
     params.append("code_challenge", challenge);
 
-    document.location = `https://accounts.spotify.com/authorize?${params.toString()}`;
+    window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`;
 }
+
 
 function generateCodeVerifier(length: number) {
     let text = '';
@@ -84,7 +82,7 @@ async function fetchProfile(token: string): Promise<UserProfile> {
     return await result.json();
 }
 
-async function fetchFavoriteTrack(token: string): Promise<SpotifyTrack | null> {
+export async function fetchFavoriteTrack(token: string): Promise<SpotifyTrack | null> {
     const response = await fetch("https://api.spotify.com/v1/me/top/tracks?time_range=short_term&limit=1&offset=0", {
       method: "GET", headers: { Authorization: `Bearer ${token}` }
     });
@@ -97,9 +95,15 @@ async function fetchFavoriteTrack(token: string): Promise<SpotifyTrack | null> {
     const data: SpotifyTopTracksResponse = await response.json();
     return data.items[0]; // return the top (favorite) track
   }
+
+export async function searchForSong(token: string, searchKey: string){
+    const response = await fetch(`https://api.spotify.com/search?q=${searchKey}&type=track&limit=5&offset=0`, {method: "GET", headers: {Authorization: `Bearer ${token}`}
+    });
+    
+}
   
 
-function populateFavoriteSong(track: SpotifyTrack) {
+export function populateFavoriteSong(track: SpotifyTrack) {
     const favoriteSongElement = document.getElementById("favoriteSong");
     if (!favoriteSongElement) return;
     
@@ -128,7 +132,7 @@ function populateUI(profile: UserProfile) {
     document.getElementById("imgUrl")!.innerText = profile.images[0]?.url ?? '(no profile image)';
 }
 
-async function playFavoriteSong(favoriteSong: SpotifyTrack | null, token: string) {
+export async function playFavoriteSong(favoriteSong: SpotifyTrack | null, token: string) {
     if (favoriteSong != null) {
         const response = await fetch(`https://api.spotify.com/v1/me/player/queue?uri=${favoriteSong.uri}`, {
             method: "POST",
