@@ -9,13 +9,10 @@
 
 
 
-<Increment /> 
-
-
 <style lang="postcss">
     @reference "tailwindcss";
 
     :global(html) {
-        background-color: #dbd1d1;
+        background-color: #121212;
     }
 </style>
