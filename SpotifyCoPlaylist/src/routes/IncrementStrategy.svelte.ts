@@ -15,6 +15,6 @@ export class BetaIS implements IncrementStrategy {
     value = $state(0);
     
 	increment() {
-        this.value += 2;   
+        this.value *= this.value;   
     }
 }
