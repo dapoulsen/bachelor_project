@@ -7,6 +7,9 @@
 
 <SpotifyAuth />
 
+<main>
+    <Increment />
+</main>
 
 
 <style lang="postcss">
