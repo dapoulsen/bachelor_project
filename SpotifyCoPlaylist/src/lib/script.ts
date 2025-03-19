@@ -1,4 +1,4 @@
-import type { UserProfile, SpotifyTopTracksResponse, SpotifyTrack, } from "./types";
+import type { UserProfile, SpotifyTopTracksResponse, SpotifyTrack, SpotifySearchResponse } from "./types";
 
 export const clientId = "1aacc1c2967a41b18cb20bfaeefe8ff2";
 /*const code = params.get("code");
@@ -97,9 +97,17 @@ export async function fetchFavoriteTrack(token: string): Promise<SpotifyTrack | 
   }
 
 export async function searchForSong(token: string, searchKey: string){
-    const response = await fetch(`https://api.spotify.com/search?q=${searchKey}&type=track&limit=5&offset=0`, {method: "GET", headers: {Authorization: `Bearer ${token}`}
+    console.log(token);
+    const response = await fetch(`https://api.spotify.com/v1/search?q=${searchKey}&type=track&limit=5`, 
+        {method: "GET", headers: {Authorization: `Bearer ${token}`}
     });
-    
+    if (!response.ok) {
+        console.error("Failed to search for song", response.status);
+        return null;
+    }
+
+    const data = await response.json();
+    return data.tracks.items;
 }
   
 
