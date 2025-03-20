@@ -6,7 +6,8 @@
         clientId,
         getAccessToken,
         fetchFavoriteTrack,
-        playFavoriteSong
+        playFavoriteSong,
+        refreshAccessToken
     } from "$lib/script";
     import type { SpotifyTrack } from '$lib/types';
     let favoriteSong: SpotifyTrack | null = null;
@@ -31,9 +32,13 @@
             }
         } else {
             try {
+                // 🔄 Refresh token if expired
+                accessToken = await refreshAccessToken(clientId) || accessToken;
+                console.log("🔄 Updated access token:", accessToken);
+
                 favoriteSong = await fetchFavoriteTrack(accessToken);
             } catch (error) {
-                console.error("Error fetching favorite song:", error);
+                console.error("❌ Error fetching favorite song:", error);
             }
         }
         
