@@ -23,10 +23,10 @@
     <button class="bg-blue-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick = {() => setState(2)}> Stem </button>
     {#if userState.state === 1}
         <AddSong />
-        {setState(0)}
+        setState(0)
     {:else if userState.state === 2}
         <Increment />
-        {setState(0)}
+        setState(0)
     {/if}
 </main>
 
