@@ -6,12 +6,7 @@
     import type { SpotifySearchResponse } from '$lib/types';
     import Cookies from "js-cookie";
 
-    /*let {
-        accessToken
-    }:{
-        accessToken: Auth;
-    } = $props();
-    */
+    
     let accessToken = Cookies.get("spotify_access_token") || ""; // Retrieve from cookies
     let searchResults = $state<SpotifySearchResponse | null>(null);
 
@@ -39,7 +34,7 @@
                     <img src={track.album.images[0]?.url} alt={track.album.name} width="200" />
                     <p>{track.album.name}</p>
                     <button class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105"
-                    onclick={() => playSelectedSong(track, accessToken)}> Fuck dig </button>
+                    onclick={() => playSelectedSong(track, accessToken)}> Tilføj </button>
                 </li>
             {/each}
         </ul>
