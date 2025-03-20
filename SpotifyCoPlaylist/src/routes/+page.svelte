@@ -1,7 +1,40 @@
-<script>
+<script lang="ts">
     import SpotifyAuth from "./spotifyAuth.svelte";
+    import Increment from "./Increment.svelte";
+    import AddSong from "./addSong.svelte";
+    import { Auth } from "./authClass.svelte"
+    
+    let at = new Auth();
+
+    let userState = $state({
+        state: 0
+    });
+
+    function setState(newState: number) {
+        userState.state = newState;
+    }
+    
 </script>
 
-<div class="min-h-screen flex items-center justify-center bg-gray-900 text-white">
-    <SpotifyAuth />
-</div>
+<SpotifyAuth accessToken={at}/>
+
+<main>
+    <button class="bg-blue-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick = {() => setState(1)}> Tilføj </button>
+    <button class="bg-blue-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick = {() => setState(2)}> Stem </button>
+    {#if userState.state === 1}
+        <AddSong accessToken={at}/>
+        userState.state = 0;
+    {:else if userState.state === 2}
+        <Increment />
+        userState.state = 0;
+    {/if}
+</main>
+
+
+<style lang="postcss">
+    @reference "tailwindcss";
+
+    :global(html) {
+        background-color: #121212;
+    }
+</style>

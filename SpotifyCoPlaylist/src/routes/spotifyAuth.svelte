@@ -11,7 +11,16 @@
     import type { SpotifyTrack } from '$lib/types';
 
     let accessToken = Cookies.get("spotify_access_token") || ""; // Retrieve from cookies
+    import { Auth } from "./authClass.svelte"
+    
+    // let accessToken = ""; // ✅ Make these reactive
     let favoriteSong: SpotifyTrack | null = null;
+    let favoriteSongHtml = ""; // ✅ Store the generated HTML as a string
+    let {
+        accessToken
+    }:{
+        accessToken: Auth;
+    } = $props();
 
     onMount(async () => {
         const params = new URLSearchParams(window.location.search);
@@ -36,7 +45,16 @@
                 console.error("Error fetching favorite song:", error);
             }
         }
+        
     });
+
+    async function favoriteTrack(accessToken:string) {
+        favoriteSong = await fetchFavoriteTrack(accessToken);
+        if (favoriteSong) {
+                favoriteSongHtml = generateFavoriteSongHtml(favoriteSong); // ✅ Store HTML output
+        }
+        return favoriteSong;
+    }
 
     function generateFavoriteSongHtml(track: SpotifyTrack): string {
         return `
