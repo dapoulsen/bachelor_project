@@ -27,7 +27,7 @@
     
     <button class="bg-blue-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick={async () => searchResults = await searchForSong(accessToken.getToken(), songSearch.search)}>Search</button>
     <p>Song search: {songSearch.search}</p>
-    <p> Searc results: {searchResults}</p>
+    <p> Search results: {searchResults}</p>
     {#if searchResults}
         <ul>
             {#each searchResults.tracks.items as track}
@@ -36,7 +36,7 @@
                     <p>{track.artists.map(artist => artist.name).join(", ")}</p>
                     <img src={track.album.images[0]?.url} alt={track.album.name} width="200" />
                     <p>{track.album.name}</p>
-                    <button></button>
+                    <button>Tilføj</button>
                 </li>
             {/each}
         </ul>
