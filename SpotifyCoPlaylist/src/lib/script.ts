@@ -56,17 +56,21 @@ async function generateCodeChallenge(codeVerifier: string) {
         .replace(/=+$/, '');
 }
 
-export async function getAccessToken(clientId: string, code: string): Promise<string> {
-    const verifier = Cookies.get("verifier");
+export async function getAccessToken(clientId: string, code: string): Promise<{ access_token: string, refresh_token: string }> {
+    const verifier = Cookies.get("verifier"); // Retrieve the stored verifier
     if (!verifier) {
-        throw new Error("Missing code verifier from cookies");
+        console.error("🚨 Missing code verifier from cookies");
+        throw new Error("No verifier found in cookies.");
     }
+
     const params = new URLSearchParams();
     params.append("client_id", clientId);
     params.append("grant_type", "authorization_code");
     params.append("code", code);
     params.append("redirect_uri", "http://localhost:5173/");
-    params.append("code_verifier", verifier!);
+    params.append("code_verifier", verifier);
+
+    console.log("🔄 Fetching access token from Spotify...");
 
     const result = await fetch("https://accounts.spotify.com/api/token", {
         method: "POST",
@@ -74,10 +78,21 @@ export async function getAccessToken(clientId: string, code: string): Promise<st
         body: params
     });
 
-    const { access_token } = await result.json();
-    Cookies.set("spotify_access_token", access_token, { expires: 1, secure: true, sameSite: "Strict" });
-    return access_token;
+    if (!result.ok) {
+        console.error("🚨 Failed to fetch access token:", result.status);
+        throw new Error(`Failed to get access token. Status: ${result.status}`);
+    }
+
+    const data = await result.json();
+    console.log("✅ Successfully received tokens:", data);
+
+    // Store both tokens
+    Cookies.set("spotify_access_token", data.access_token, { expires: 1 / 24, sameSite: "Strict" }); // Expires in 1 hour
+    Cookies.set("spotify_refresh_token", data.refresh_token, { expires: 30, sameSite: "Strict" }); // Expires in 30 days
+
+    return { access_token: data.access_token, refresh_token: data.refresh_token };
 }
+
 
 async function fetchProfile(token: string): Promise<UserProfile> {
         const result = await fetch("https://api.spotify.com/v1/me", {
@@ -180,3 +195,39 @@ export async function playSelectedSong(song: SpotifyTrack | null, token:string) 
 export function getStoredAccessToken(): string | null {
     return Cookies.get("spotify_access_token") || null;
 }
+
+export async function refreshAccessToken(clientId: string): Promise<string | null> {
+    const refreshToken = Cookies.get("spotify_refresh_token");
+
+    if (!refreshToken) {
+        console.error("❌ No refresh token found. User must log in again.");
+        return null; // User needs to log in again
+    }
+
+    console.log("🔄 Refreshing access token...");
+
+    const params = new URLSearchParams();
+    params.append("client_id", clientId);
+    params.append("grant_type", "refresh_token");
+    params.append("refresh_token", refreshToken);
+
+    const result = await fetch("https://accounts.spotify.com/api/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: params
+    });
+
+    if (!result.ok) {
+        console.error("🚨 Failed to refresh access token:", result.status);
+        return null;
+    }
+
+    const data = await result.json();
+    console.log("✅ New access token received:", data.access_token);
+
+    // Store the new access token
+    Cookies.set("spotify_access_token", data.access_token, { expires: 1 / 24, sameSite: "Strict" });
+
+    return data.access_token;
+}
+

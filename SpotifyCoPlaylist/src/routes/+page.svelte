@@ -17,6 +17,8 @@
     
 </script>
 
+<SpotifyAuth />
+
 <main>
     <button class="bg-blue-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick = {() => setState(1)}> Tilføj </button>
     <button class="bg-blue-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick = {() => setState(2)}> Stem </button>
