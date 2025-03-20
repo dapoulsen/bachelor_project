@@ -1,4 +1,5 @@
 import type { UserProfile, SpotifyTopTracksResponse, SpotifyTrack, } from "./types";
+import Cookies from "js-cookie"; // Install with `npm install js-cookie`
 
 export const clientId = "1aacc1c2967a41b18cb20bfaeefe8ff2";
 /*const code = params.get("code");
@@ -21,6 +22,7 @@ export async function redirectToAuthCodeFlow(clientId: string) {
     const verifier = generateCodeVerifier(128);
     const challenge = await generateCodeChallenge(verifier);
 
+    Cookies.set("verifier", verifier, { expires: 1, secure: true, sameSite: "Strict" });
     localStorage.setItem("verifier", verifier);
 
     const params = new URLSearchParams();
@@ -55,8 +57,10 @@ async function generateCodeChallenge(codeVerifier: string) {
 }
 
 export async function getAccessToken(clientId: string, code: string): Promise<string> {
-    const verifier = localStorage.getItem("verifier");
-
+    const verifier = Cookies.get("verifier");
+    if (!verifier) {
+        throw new Error("Missing code verifier from cookies");
+    }
     const params = new URLSearchParams();
     params.append("client_id", clientId);
     params.append("grant_type", "authorization_code");
@@ -71,6 +75,7 @@ export async function getAccessToken(clientId: string, code: string): Promise<st
     });
 
     const { access_token } = await result.json();
+    Cookies.set("spotify_access_token", access_token, { expires: 1, secure: true, sameSite: "Strict" });
     return access_token;
 }
 
@@ -153,4 +158,8 @@ export async function playFavoriteSong(favoriteSong: SpotifyTrack | null, token:
 
     console.log("Hejsa");
     console.log(favoriteSong?.uri);
+}
+
+export function getStoredAccessToken(): string | null {
+    return Cookies.get("spotify_access_token") || null;
 }
