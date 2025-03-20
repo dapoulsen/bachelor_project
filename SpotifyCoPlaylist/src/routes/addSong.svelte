@@ -4,7 +4,6 @@
         playSelectedSong
     } from "$lib/script"
     import type { SpotifySearchResponse } from '$lib/types';
-    import { Auth } from "./authClass.svelte"
     import Cookies from "js-cookie";
 
     /*let {
