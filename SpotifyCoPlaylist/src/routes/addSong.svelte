@@ -1,16 +1,19 @@
 <script lang="ts">
     import { 
-        searchForSong
+        searchForSong,
+        playSelectedSong
     } from "$lib/script"
     import type { SpotifySearchResponse } from '$lib/types';
     import { Auth } from "./authClass.svelte"
+    import Cookies from "js-cookie";
 
-    let {
+    /*let {
         accessToken
     }:{
         accessToken: Auth;
     } = $props();
-    
+    */
+    let accessToken = Cookies.get("spotify_access_token") || ""; // Retrieve from cookies
     let searchResults = $state<SpotifySearchResponse | null>(null);
 
     let songSearch = $state({
@@ -25,7 +28,7 @@
     <h1>Add Song</h1>
     <input bind:value={songSearch.search} type="text" placeholder="Search for a song" />
     
-    <button class="bg-blue-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick={async () => searchResults = await searchForSong(accessToken.getToken(), songSearch.search)}>Search</button>
+    <button class="bg-blue-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick={async () => searchResults = await searchForSong(accessToken, songSearch.search)}>Search</button>
     <p>Song search: {songSearch.search}</p>
     <p> Search results: {searchResults}</p>
     {#if searchResults}
@@ -36,7 +39,8 @@
                     <p>{track.artists.map(artist => artist.name).join(", ")}</p>
                     <img src={track.album.images[0]?.url} alt={track.album.name} width="200" />
                     <p>{track.album.name}</p>
-                    <button>Tilføj</button>
+                    <button class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105"
+                    onclick={() => playSelectedSong(track, accessToken)}> Fuck dig </button>
                 </li>
             {/each}
         </ul>

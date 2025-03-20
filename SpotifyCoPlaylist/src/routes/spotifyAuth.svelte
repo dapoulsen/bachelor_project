@@ -9,9 +9,9 @@
         playFavoriteSong
     } from "$lib/script";
     import type { SpotifyTrack } from '$lib/types';
-
+    let favoriteSong: SpotifyTrack | null = null;
     let accessToken = Cookies.get("spotify_access_token") || ""; // Retrieve from cookies
-    import { Auth } from "./authClass.svelte"
+    /*import { Auth } from "./authClass.svelte"
     
     // let accessToken = ""; // ✅ Make these reactive
     let favoriteSong: SpotifyTrack | null = null;
@@ -21,7 +21,7 @@
     }:{
         accessToken: Auth;
     } = $props();
-
+*/
     onMount(async () => {
         const params = new URLSearchParams(window.location.search);
         const code = params.get("code");
