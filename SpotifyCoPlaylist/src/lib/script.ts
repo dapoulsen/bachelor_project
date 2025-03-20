@@ -167,6 +167,15 @@ export async function playFavoriteSong(favoriteSong: SpotifyTrack | null, token:
     console.log("Hejsa");
     console.log(favoriteSong?.uri);
 }
+export async function playSelectedSong(song: SpotifyTrack | null, token:string) {
+    const response = await fetch(`https://api.spotify.com/v1/me/player/queue?uri=${song.uri}`, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+        }
+    });
+}
 
 export function getStoredAccessToken(): string | null {
     return Cookies.get("spotify_access_token") || null;

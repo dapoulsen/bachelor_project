@@ -3,8 +3,9 @@
     import Increment from "./Increment.svelte";
     import AddSong from "./addSong.svelte";
     import { Auth } from "./authClass.svelte"
+    import Cookies from "js-cookie";
     
-    let at = new Auth();
+    let accessToken = Cookies.get("spotify_access_token") || ""; // Retrieve from cookies
 
     let userState = $state({
         state: 0
@@ -16,13 +17,11 @@
     
 </script>
 
-<SpotifyAuth accessToken={at}/>
-
 <main>
     <button class="bg-blue-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick = {() => setState(1)}> Tilføj </button>
     <button class="bg-blue-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick = {() => setState(2)}> Stem </button>
     {#if userState.state === 1}
-        <AddSong accessToken={at}/>
+        <AddSong/>
         userState.state = 0;
     {:else if userState.state === 2}
         <Increment />
