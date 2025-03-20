@@ -17,62 +17,57 @@
         const params = new URLSearchParams(window.location.search);
         const code = params.get("code");
 
-        console.log("Checking stored access token:", accessToken); // Debugging
-
-        if (accessToken == "undefined") {
+        if (!accessToken || accessToken === "undefined") {
             if (!code) {
-                console.log("No token or code found, redirecting to login.");
                 redirectToAuthCodeFlow(clientId);
             } else {
                 try {
-                    console.log("Found auth code, requesting access token...");
                     accessToken = await getAccessToken(clientId, code);
                     Cookies.set("spotify_access_token", accessToken, { expires: 1, secure: true, sameSite: "Strict" });
-
-                    console.log("Access token set:", accessToken);
                     favoriteSong = await fetchFavoriteTrack(accessToken);
                 } catch (error) {
-                    console.error("Fejl ved hentning af access token:", error);
+                    console.error("Error fetching access token:", error);
                 }
             }
         } else {
-            console.log("Using stored access token:", accessToken);
             try {
                 favoriteSong = await fetchFavoriteTrack(accessToken);
             } catch (error) {
-                console.error("Fejl ved hentning af favorit-sang:", error);
+                console.error("Error fetching favorite song:", error);
             }
         }
     });
 
     function generateFavoriteSongHtml(track: SpotifyTrack): string {
         return `
-          <h2>${track.name}</h2>
-          <p>Artist: ${track.artists.map(artist => artist.name).join(", ")}</p>
-          <img src="${track.album.images[0]?.url}" alt="${track.album.name}" width="200" />
-          <p>Album: ${track.album.name}</p>
-          <p>Duration: ${Math.floor(track.duration_ms / 60000)}:${(track.duration_ms % 60000 / 1000).toFixed(0)}</p>
+            <h2 class="text-2xl font-semibold">${track.name}</h2>
+            <p class="text-gray-400">Artist: ${track.artists.map(artist => artist.name).join(", ")}</p>
+            <div class="flex justify-center mt-4">
+                <img src="${track.album.images[0]?.url}" alt="${track.album.name}" class="w-48 h-48 rounded-lg shadow-lg" />
+            </div>
+            <p class="mt-4 text-gray-300">Album: ${track.album.name}</p>
+            <p class="text-gray-500">Duration: ${Math.floor(track.duration_ms / 60000)}:${(track.duration_ms % 60000 / 1000).toFixed(0)}</p>
         `;
     }
 </script>
 
 <!-- UI -->
-<div class="h-24 bg-gradient-to-r from-orange-400 via-red-500 to-pink-500">
-    <h1 class="font-[helvetica] text-6xl">
-        ChatDPT's store bachelorprojekt 
+<div class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-800 to-black p-6">
+    <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-6">
+        ChatDPT's Store Bachelorprojekt
     </h1>
 
     {#if favoriteSong}
         <button 
-            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" 
+            class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105"
             on:click={() => playFavoriteSong(favoriteSong, accessToken)}
         > 
-            Spil din favorit-sang
+            🎵 Spil din favorit-sang
         </button>
 
-        <div class="container">
-            <h1>Her er din favorit-sang</h1>
-            <div id="favoriteSong">{@html generateFavoriteSongHtml(favoriteSong)}</div>      
+        <div class="mt-6 p-6 bg-gray-900 rounded-lg shadow-lg w-full max-w-md text-center">
+            <h1 class="text-xl font-semibold text-gray-200 mb-4">Her er din favorit-sang</h1>
+            <div id="favoriteSong" class="text-white">{@html generateFavoriteSongHtml(favoriteSong)}</div>      
         </div>
     {/if}
 </div>

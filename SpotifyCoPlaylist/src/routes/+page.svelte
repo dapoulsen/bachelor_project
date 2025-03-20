@@ -1,18 +1,7 @@
 <script>
     import SpotifyAuth from "./spotifyAuth.svelte";
-    import Increment from "./Increment.svelte";
-
-    
 </script>
 
-<SpotifyAuth />
-
-
-
-<style lang="postcss">
-    @reference "tailwindcss";
-
-    :global(html) {
-        background-color: #121212;
-    }
-</style>
+<div class="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+    <SpotifyAuth />
+</div>
