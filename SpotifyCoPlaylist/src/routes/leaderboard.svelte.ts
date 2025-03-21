@@ -1,17 +1,19 @@
 import type { SpotifyTrack } from "$lib/types";
 
 export class Leaderboard {
-    list = $state([] as SpotifyTrack[]);
+    list = $state<Array<{ track: SpotifyTrack, votes: number }>>([]);
 
     addToLeaderboard(item: SpotifyTrack){
-        if(this.list.includes(item)){
+        const existingTrack = this.list.find(entry => entry.track.id === item.id);
+        if(existingTrack){
+            existingTrack.votes += 1;
             return;
         }
-        this.list.push(item);
+        this.list.push({ track: item, votes: 1 });
     }
 
     removeFromLeaderboard(item: SpotifyTrack){
-        this.list = this.list.filter(track => track !== item);
+        this.list = this.list.filter(entry => entry.track.id !== item.id);
     }
 
 }

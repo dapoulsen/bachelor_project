@@ -60,14 +60,15 @@
             {#each leaderboard.list as item}
                 <li class="bg-gray-800 p-4 rounded-lg flex items-center space-x-4 shadow-md">
                     <img 
-                        src={item.album.images[0]?.url} 
-                        alt={item.album.name} 
+                        src={item.track.album.images[0]?.url} 
+                        alt={item.track.album.name} 
                         class="w-16 h-16 rounded-lg"
                     />
                     <div>
-                        <p class="text-lg font-semibold">{item.name}</p>
-                        <p class="text-gray-400">{item.artists.map(artist => artist.name).join(", ")}</p>
+                        <p class="text-lg font-semibold">{item.track.name}</p>
+                        <p class="text-gray-400">{item.track.artists.map(artist => artist.name).join(", ")}</p>
                     </div>
+                    <div><p>Votes: {item.votes}</p></div>
                 </li>
             {/each}
         </ul>
