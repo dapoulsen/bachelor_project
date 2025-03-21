@@ -24,32 +24,54 @@
 
 <SpotifyAuth />
 
-<main>
-    <div class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-800 to-black p-6">
-    <button class="bg-blue-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick = {() => setState(1)}> Tilføj </button>
-    <button class="bg-blue-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick = {() => setState(2)}> Stem </button>
+<main class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 to-black p-8 text-white">
+    <!-- Header -->
+    <h1 class="text-4xl font-bold mb-6"> Music Leaderboard</h1>
+
+    <!-- Buttons -->
+    <div class="flex space-x-4 mb-8">
+        <button 
+            class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300"
+            onclick={() => setState(1)}
+        >
+            ➕ Tilføj
+        </button>
+        <button 
+            class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300"
+            onclick={() => setState(2)}
+        >
+            📊 Stem
+        </button>
+    </div>
+
+    <!-- Dynamic Content -->
     {#if userState.state === 1}
-        <AddSong leaderboard={leaderboard}/>
+        <AddSong leaderboard={leaderboard} />
     {:else if userState.state === 2}
         <Increment />
     {/if}
 
-    <h2>Leaderboard length: {leaderboard.map}</h2>
-    <ul>
-        {#if leaderboard.getLeaderboard().length === 0}
-            <p>No songs in leaderboard</p>
-        {:else}
-            {#each leaderboard.getLeaderboard() as item}
-                <li>
-                    <p>{item.track.name}</p>
-                    <p>{item.track.artists.map(artist => artist.name).join(", ")}</p>
-                    <img src={item.track.album.images[0]?.url} alt={item.track.album.name} width="200" />
-                    <p>{item.votes}</p>
+    <!-- Leaderboard -->
+    <h2 class="text-2xl font-semibold mt-8">Leaderboard</h2>
+    {#if leaderboard.list.length === 0}
+        <p class="text-gray-400 mt-4">No songs in leaderboard</p>
+    {:else}
+        <ul class="mt-6 w-full max-w-3xl space-y-4">
+            {#each leaderboard.list as item}
+                <li class="bg-gray-800 p-4 rounded-lg flex items-center space-x-4 shadow-md">
+                    <img 
+                        src={item.album.images[0]?.url} 
+                        alt={item.album.name} 
+                        class="w-16 h-16 rounded-lg"
+                    />
+                    <div>
+                        <p class="text-lg font-semibold">{item.name}</p>
+                        <p class="text-gray-400">{item.artists.map(artist => artist.name).join(", ")}</p>
+                    </div>
                 </li>
             {/each}
-        {/if}
-    </ul>
-</div>
+        </ul>
+    {/if}
 </main>
 
 
