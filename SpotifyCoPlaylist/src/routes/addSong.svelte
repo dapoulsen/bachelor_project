@@ -3,7 +3,7 @@
         searchForSong,
         playSelectedSong
     } from "$lib/script"
-    import type { SpotifySearchResponse } from '$lib/types';
+    import type { SpotifySearchResponse, SpotifyTrack } from '$lib/types';
     import Cookies from "js-cookie";
 
     

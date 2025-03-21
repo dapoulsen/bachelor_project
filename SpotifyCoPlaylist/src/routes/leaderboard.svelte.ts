@@ -1,13 +1,13 @@
 import type { SpotifySearchResponse, SpotifyTrack } from "$lib/types";
 
 export class Leaderboard {
-    list = $state<SpotifyTrack[]>([]);
+    map = $state(new Map<SpotifyTrack, number>());
 
-    addToList(item: SpotifyTrack){
-        this.list = [...this.list, item];
+    addToLeaderboard(item: SpotifyTrack){
+        this.map.set(item, 1);
     }
 
-    removeFromList(item: SpotifyTrack){
-        this.list = this.list.filter((i) => i.id !== item.id);
+    removeFromLeaderboard(item: SpotifyTrack){
+        this.map.delete(item);
     }
 }
