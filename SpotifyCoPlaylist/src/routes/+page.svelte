@@ -20,6 +20,17 @@
         userState.state = newState;
     }
 
+    function queueSongWhenTrack(track: SpotifyTrack) {
+        let seconds = track.duration_ms / 1000;
+        //When lengt - 10 seconds, the song will be added to queue and removed from leaderboard
+        setTimeout(() => {
+            let topTrack = leaderboard.list[0].track;
+            queueSelectedSong(topTrack, accessToken);
+            leaderboard.removeFromLeaderboard(track);
+        }, seconds - 10);
+
+    }
+
     async function queueSong() {
         let track = leaderboard.list[0].track;
         await queueSelectedSong(track, accessToken);
@@ -34,6 +45,7 @@
 </script>
 
 <SpotifyAuth />
+
 
 <main class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 to-black p-8 text-white">
     <!-- Header -->

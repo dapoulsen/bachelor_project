@@ -236,3 +236,17 @@ export async function refreshAccessToken(clientId: string): Promise<string | nul
     return data.access_token;
 }
 
+async function fetchCurrentTrack(token: string): Promise<SpotifyTrack | null> {
+    const response = await fetch("https://api.spotify.com/v1/me/player/currently-playing", {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (!response.ok) {
+        console.error("Failed to fetch current track", response.status);
+        return null;
+    }
+
+    const data = await response.json();
+    return data.item;
+}
