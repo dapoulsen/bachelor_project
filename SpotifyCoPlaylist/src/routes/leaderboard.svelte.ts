@@ -16,4 +16,18 @@ export class Leaderboard {
         this.list = this.list.filter(entry => entry.track.id !== item.id);
     }
 
+    incrementVotes(item: SpotifyTrack){
+        const existingTrack = this.list.find(entry => entry.track.id === item.id);
+        if(existingTrack){
+            existingTrack.votes ++;
+        }
+    }
+
+    decrementVotes(item: SpotifyTrack){
+        const existingTrack = this.list.find(entry => entry.track.id === item.id);
+        if(existingTrack){
+            existingTrack.votes --;
+        }
+    }
+
 }

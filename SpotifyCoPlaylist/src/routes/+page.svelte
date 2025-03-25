@@ -1,6 +1,5 @@
 <script lang="ts">
     import SpotifyAuth from "./spotifyAuth.svelte";
-    import Increment from "./Increment.svelte";
     import AddSong from "./addSong.svelte";
     import Cookies from "js-cookie";
     import {Leaderboard} from "./leaderboard.svelte.ts";
@@ -17,7 +16,7 @@
         userState.state = newState;
     }
 
-
+    
 
     
 </script>
@@ -47,8 +46,7 @@
     <!-- Dynamic Content -->
     {#if userState.state === 1}
         <AddSong leaderboard={leaderboard} />
-    {:else if userState.state === 2}
-        <Increment />
+    <!-- {:else if userState.state === 2} -->
     {/if}
 
     <!-- Leaderboard -->
@@ -68,12 +66,20 @@
                         <p class="text-lg font-semibold">{item.track.name}</p>
                         <p class="text-gray-400">{item.track.artists.map(artist => artist.name).join(", ")}</p>
                     </div>
-                    <div><p>Votes: {item.votes}</p></div>
+                    <div>
+                        <p>Votes: {item.votes}</p>
+                        {#if userState.state === 2}
+                            <button id="vote-button-yes" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105" onclick={() => leaderboard.incrementVotes(item.track)}>Yes</button>
+                            <button id="vote-button-no" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105" onclick={() => leaderboard.decrementVotes(item.track)}>No</button>
+                        {/if}
+                        <button style="display: none;" id="vote-bottom-yes">Yes</button>
+                        <button style="display: none;" id="vote-bottom-no">No</button>
+                    </div>
                 </li>
             {/each}
         </ul>
     {/if}
-</main>
+</main> 
 
 
 <style lang="postcss">
