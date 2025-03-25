@@ -1,7 +1,6 @@
 <script lang="ts">
     import { 
-        searchForSong,
-        playSelectedSong
+        searchForSong
     } from "$lib/script"
     import type { SpotifySearchResponse, SpotifyTrack } from '$lib/types';
     import Cookies from "js-cookie";

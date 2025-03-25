@@ -182,7 +182,8 @@ export async function playFavoriteSong(favoriteSong: SpotifyTrack | null, token:
     console.log("Hejsa");
     console.log(favoriteSong?.uri);
 }
-export async function playSelectedSong(song: SpotifyTrack | null, token:string) {
+
+export async function queueSelectedSong(song: SpotifyTrack | null, token:string) {
     if (song != null) {
     const response = await fetch(`https://api.spotify.com/v1/me/player/queue?uri=${song.uri}`, {
         method: "POST",

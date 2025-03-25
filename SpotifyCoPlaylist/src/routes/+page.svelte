@@ -16,8 +16,10 @@
         userState.state = newState;
     }
 
-    
-
+    $effect(() => {
+        leaderboard.list.sort((a, b) => b.votes - a.votes);
+        console.log("HEYO");
+    })
     
 </script>
 
@@ -69,17 +71,31 @@
                     <div>
                         <p>Votes: {item.votes}</p>
                         {#if userState.state === 2}
-                            <button id="vote-button-yes" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105" onclick={() => leaderboard.incrementVotes(item.track)}>Yes</button>
-                            <button id="vote-button-no" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105" onclick={() => leaderboard.decrementVotes(item.track)}>No</button>
+                        <div class=inline-flex>
+                            <button 
+                                id="vote-button-yes"
+                                class="bg-green-500 hover:bg-green-400 text-white font-bold py-2 px-5 rounded shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-300 space-x-2"
+                                onclick={() => leaderboard.incrementVotes(item.track)}
+                                >
+                                    ⬆️ <span>Upvote</span>
+                            </button>
+                        
+                            <button 
+                                id="vote-button-no"
+                                class="bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-5 rounded shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-300 space-x-2"
+                                onclick={() => leaderboard.decrementVotes(item.track)}
+                                >
+                                ⬇️ <span>Downvote</span>
+                            </button>
+                        </div>
                         {/if}
-                        <button style="display: none;" id="vote-bottom-yes">Yes</button>
-                        <button style="display: none;" id="vote-bottom-no">No</button>
                     </div>
                 </li>
             {/each}
         </ul>
     {/if}
 </main> 
+
 
 
 <style lang="postcss">
