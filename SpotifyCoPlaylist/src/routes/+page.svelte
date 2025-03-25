@@ -3,6 +3,10 @@
     import AddSong from "./addSong.svelte";
     import Cookies from "js-cookie";
     import {Leaderboard} from "./leaderboard.svelte.ts";
+    import type { SpotifyTrack } from "$lib/types.js";
+    import { 
+        queueSelectedSong
+    } from "$lib/script"
     
     let accessToken = Cookies.get("spotify_access_token") || ""; // Retrieve from cookies
 
@@ -14,6 +18,12 @@
 
     function setState(newState: number) {
         userState.state = newState;
+    }
+
+    async function queueSong() {
+        let track = leaderboard.list[0].track;
+        await queueSelectedSong(track, accessToken);
+        leaderboard.removeFromLeaderboard(track);
     }
 
     $effect(() => {
@@ -53,6 +63,7 @@
 
     <!-- Leaderboard -->
     <h2 class="text-2xl font-semibold mt-8">Leaderboard</h2>
+    <button onclick={queueSong}>ADD SONG TO QUEUE</button>
     {#if leaderboard.list.length === 0}
         <p class="text-gray-400 mt-4">No songs in leaderboard</p>
     {:else}
