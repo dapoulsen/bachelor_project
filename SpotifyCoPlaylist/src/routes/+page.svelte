@@ -20,17 +20,6 @@
         userState.state = newState;
     }
 
-    function queueSongWhenTrack(track: SpotifyTrack) {
-        let seconds = track.duration_ms / 1000;
-        //When lengt - 10 seconds, the song will be added to queue and removed from leaderboard
-        setTimeout(() => {
-            let topTrack = leaderboard.list[0].track;
-            queueSelectedSong(topTrack, accessToken);
-            leaderboard.removeFromLeaderboard(track);
-        }, seconds - 10);
-
-    }
-
     async function queueSong() {
         let track = leaderboard.list[0].track;
         await queueSelectedSong(track, accessToken);
@@ -39,7 +28,6 @@
 
     $effect(() => {
         leaderboard.list.sort((a, b) => b.votes - a.votes);
-        console.log("HEYO");
     })
     
 </script>
@@ -75,7 +63,9 @@
 
     <!-- Leaderboard -->
     <h2 class="text-2xl font-semibold mt-8">Leaderboard</h2>
-    <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300" onclick={queueSong}>ADD SONG TO QUEUE</button>
+    <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300" 
+        onclick={queueSong}>ADD SONG TO QUEUE
+    </button>
     {#if leaderboard.list.length === 0}
         <p class="text-gray-400 mt-4">No songs in leaderboard</p>
     {:else}

@@ -28,7 +28,7 @@ export async function redirectToAuthCodeFlow(clientId: string) {
     const params = new URLSearchParams();
     params.append("client_id", clientId);
     params.append("response_type", "code");
-    params.append("redirect_uri", "http://localhost:5173/");
+    params.append("redirect_uri", "https://bachelor-project-ruddy.vercel.app/");
     params.append("scope", "user-read-private user-read-email user-top-read user-modify-playback-state");
     params.append("code_challenge_method", "S256");
     params.append("code_challenge", challenge);
@@ -67,7 +67,7 @@ export async function getAccessToken(clientId: string, code: string): Promise<{ 
     params.append("client_id", clientId);
     params.append("grant_type", "authorization_code");
     params.append("code", code);
-    params.append("redirect_uri", "http://localhost:5173/");
+    params.append("redirect_uri", "https://bachelor-project-ruddy.vercel.app/");
     params.append("code_verifier", verifier);
 
     console.log("🔄 Fetching access token from Spotify...");
@@ -236,7 +236,7 @@ export async function refreshAccessToken(clientId: string): Promise<string | nul
     return data.access_token;
 }
 
-async function fetchCurrentTrack(token: string): Promise<SpotifyTrack | null> {
+export async function fetchCurrentTrack(token: string): Promise<SpotifyTrack | null> {
     const response = await fetch("https://api.spotify.com/v1/me/player/currently-playing", {
         method: "GET",
         headers: { Authorization: `Bearer ${token}` }
