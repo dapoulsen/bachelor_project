@@ -29,7 +29,7 @@ export async function redirectToAuthCodeFlow(clientId: string) {
     params.append("client_id", clientId);
     params.append("response_type", "code");
     params.append("redirect_uri", "https://bachelor-project-ruddy.vercel.app");
-    params.append("scope", "user-read-private user-read-email user-top-read user-modify-playback-state");
+    params.append("scope", "user-read-private user-read-email user-top-read user-modify-playback-state user-read-currently-playing");
     params.append("code_challenge_method", "S256");
     params.append("code_challenge", challenge);
 
@@ -250,3 +250,4 @@ export async function fetchCurrentTrack(token: string): Promise<SpotifyTrack | n
     const data = await response.json();
     return data.item;
 }
+
