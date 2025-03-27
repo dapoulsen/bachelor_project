@@ -9,6 +9,7 @@
     let accessToken = Cookies.get("spotify_access_token") || ""; // Retrieve from cookies
 
     let currentlyPlaying = $state<SpotifyTrack | null>(null);
+    let progress = new Tween(0);
     
 
 
@@ -17,15 +18,27 @@
         currentlyPlaying = song;
     }
 
+    async function getCurrentTrackId() {
+        const song = await fetchCurrentTrack(accessToken);
+        return song;
+    }
     onMount(() => {
-        updateSong();
+        let duration = 1000;
+        if (currentlyPlaying === null) {
+            updateSong();
+        } 
+            
+        getCurrentTrackId().then(song => {
+            if (song?.id !== currentlyPlaying?.id && currentlyPlaying && song){
+                currentlyPlaying = song;
+                duration = currentlyPlaying.duration_ms;
+            }
+        });
+        
 
-        const interval = setInterval(updateSong, 10000);
-
+        const interval = setInterval(updateSong, duration);
         return () => clearInterval(interval);
     });
-
-    let progress = new Tween(0);
 
     $effect(() => {
         if (currentlyPlaying) {
@@ -51,7 +64,6 @@
     </div>
     <progress value={progress.current}></progress>
     <p>{progress.current}</p>
-    <p>{progress.duration}</p>
 {:else}
     <h1 class="text-4xl font-bold mb-6"> No song currently playing </h1>
 {/if}
