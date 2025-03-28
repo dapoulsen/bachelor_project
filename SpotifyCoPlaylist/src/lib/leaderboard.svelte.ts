@@ -1,19 +1,37 @@
 import type { SpotifyTrack } from "$lib/types";
+import { getContext, onDestroy, setContext } from "svelte";
 
-export class Leaderboard {
-    list = $state<Array<{ track: SpotifyTrack, votes: number }>>([]);
+export class LeaderboardState {
+    private list: Array<{ track: SpotifyTrack, votes: number }> = [];
+    private initialized: boolean = false;
+
+
 
     addToLeaderboard(item: SpotifyTrack){
         const existingTrack = this.list.find(entry => entry.track.id === item.id);
         if(existingTrack){
             existingTrack.votes += 1;
-            return;
+        } else {
+            this.list.push({ track: item, votes: 1 });
         }
-        this.list.push({ track: item, votes: 1 });
+        return this.getStatus();
+    }
+
+    initialize() {
+        this.initialized = true;
+        return this.getStatus();
+    }
+
+    getStatus() {
+        return {
+            list: this.list,
+            initialized: this.initialized
+        };
     }
 
     removeFromLeaderboard(item: SpotifyTrack){
         this.list = this.list.filter(entry => entry.track.id !== item.id);
+        return this.getStatus();
     }
 
     incrementVotes(item: SpotifyTrack){
@@ -21,6 +39,7 @@ export class Leaderboard {
         if(existingTrack){
             existingTrack.votes ++;
         }
+        return this.getStatus();
     }
 
     decrementVotes(item: SpotifyTrack){
@@ -28,8 +47,13 @@ export class Leaderboard {
         if(existingTrack){
             existingTrack.votes --;
         }
+        return this.getStatus();
     }
 
-    
-
+    sortLeaderboard(){
+        this.list = this.list.sort((a, b) => b.votes - a.votes);
+        return this.getStatus();
+    }
 }
+
+export const leaderboardState = new LeaderboardState();

@@ -4,12 +4,9 @@
     } from "$lib/script"
     import type { SpotifySearchResponse, SpotifyTrack } from '$lib/types';
     import Cookies from "js-cookie";
-    import {Leaderboard} from "$lib/leaderboard.svelte.ts";
+    import { addToLeaderboard } from "$lib/api";
+    import { leaderboardState } from "$lib/leaderboard.svelte";
 
-    
-    let {leaderboard} : {
-        leaderboard: Leaderboard
-    } = $props();
 
     let accessToken = Cookies.get("spotify_access_token") || ""; // Retrieve from cookies
     let searchResults = $state<SpotifySearchResponse | null>(null);
@@ -29,6 +26,10 @@
 
     async function searchSongs() {
         searchResults = await searchForSong(accessToken, songSearch.search);
+    }
+
+    async function addSongToLeaderboard(track: SpotifyTrack) {
+        await addToLeaderboard(track);
     }
     
 </script>
@@ -82,7 +83,7 @@
                     </div>
                     <button 
                         class="ml-auto bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105"
-                        onclick={() => leaderboard.addToLeaderboard(track)}
+                        onclick={() => leaderboardState.addToLeaderboard({...track, votes: 1})}
                     >
                         ➕ Add
                     </button>

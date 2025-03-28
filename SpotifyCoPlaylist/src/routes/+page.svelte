@@ -2,18 +2,45 @@
     import SpotifyAuth from "$lib/Components/spotifyAuth.svelte";
     import AddSong from "$lib/Components/addSong.svelte";
     import Cookies from "js-cookie";
-    import {Leaderboard} from "$lib/leaderboard.svelte.ts";
     import type { SpotifyTrack } from "$lib/types.js";
-    import { 
-        queueSelectedSong
-    } from "$lib/script"
+    import { queueSelectedSong } from "$lib/script"
+    import { onMount } from "svelte";
+    import { getLeaderboard, voteForTrack, removeFromLeaderboard } from "$lib/api";
     
-    let accessToken = Cookies.get("spotify_access_token") || ""; // Retrieve from cookies
+    interface LeaderboardItem {
+        track: SpotifyTrack;
+        votes: number;
+    }
+    
+    let leaderboardState = $state({
+        list: [] as LeaderboardItem[],
+        initialized: false
+    });
 
-    let leaderboard = new Leaderboard();
+    let accessToken = Cookies.get("spotify_access_token") || ""; // Retrieve from cookies
 
     let userState = $state({
         state: 0
+    });
+
+    onMount(() => {
+        let interval: ReturnType<typeof setInterval>;
+        
+        // Use an immediately invoked async function
+        (async () => {
+            const data = await getLeaderboard();
+            leaderboardState = data;
+            
+            interval = setInterval(async () => {
+                const updatedData = await getLeaderboard();
+                leaderboardState = updatedData;
+            }, 5000);
+        })();
+        
+        // Return the cleanup function directly
+        return () => {
+            if (interval) clearInterval(interval);
+        };
     });
 
     function setState(newState: number) {
@@ -21,16 +48,28 @@
     }
 
     async function queueSong() {
-        let track = leaderboard.list[0].track;
-        await queueSelectedSong(track, accessToken);
-        leaderboard.removeFromLeaderboard(track);
+        if (leaderboardState.list.length === 0) {
+            let track = leaderboardState.list[0].track;
+            await queueSelectedSong(track, accessToken);
+            await removeFromLeaderboard(track.id);
+
+            const updatedData = await getLeaderboard();
+            leaderboardState = updatedData;
+        }
+        
     }
 
-    $effect(() => {
-        leaderboard.list.sort((a, b) => b.votes - a.votes);
-    })
+    async function handleVote(trackId:string, action: 'increment' | 'decrement') {
+        await voteForTrack(trackId, action);
+        const updatedData = await getLeaderboard();
+        leaderboardState = updatedData;
+    }
+        
+    
     
 </script>
+
+
 
 <SpotifyAuth />
 
@@ -39,6 +78,11 @@
     <!-- Header -->
     <h1 class="text-4xl font-bold mb-6"> Music Leaderboard</h1>
 
+    {#if !leaderboardState.initialized}
+        <p class="text-gray-400">Loading...</p>
+    {:else}
+        <p class="text-gray-400">Welcome to the Music Leaderboard! Add songs to the leaderboard and vote on your favorites.</p>
+    
     <!-- Buttons -->
     <div class="flex space-x-4 mb-8">
         <button 
@@ -57,7 +101,7 @@
 
     <!-- Dynamic Content -->
     {#if userState.state === 1}
-        <AddSong leaderboard={leaderboard} />
+        <AddSong  />
     <!-- {:else if userState.state === 2} -->
     {/if}
 
@@ -66,11 +110,11 @@
     <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300" 
         onclick={queueSong}>ADD SONG TO QUEUE
     </button>
-    {#if leaderboard.list.length === 0}
+    {#if leaderboardState.list.length === 0}
         <p class="text-gray-400 mt-4">No songs in leaderboard</p>
     {:else}
         <ul class="mt-6 w-full max-w-3xl space-y-4">
-            {#each leaderboard.list as item}
+            {#each leaderboardState.list as item}
                 <li class="bg-gray-800 p-4 rounded-lg flex items-center space-x-4 shadow-md">
                     <img 
                         src={item.track.album.images[0]?.url} 
@@ -88,7 +132,7 @@
                             <button 
                                 id="vote-button-yes"
                                 class="bg-green-500 hover:bg-green-400 text-white font-bold py-2 px-5 rounded shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-300 space-x-2"
-                                onclick={() => leaderboard.incrementVotes(item.track)}
+                                onclick={() => handleVote(item.track.id, 'increment')}
                                 >
                                     ⬆️ <span>Upvote</span>
                             </button>
@@ -96,7 +140,7 @@
                             <button 
                                 id="vote-button-no"
                                 class="bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-5 rounded shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-300 space-x-2"
-                                onclick={() => leaderboard.decrementVotes(item.track)}
+                                onclick={() => handleVote(item.track.id, 'decrement')}
                                 >
                                 ⬇️ <span>Downvote</span>
                             </button>
@@ -106,6 +150,8 @@
                 </li>
             {/each}
         </ul>
+    {/if}
+
     {/if}
 </main> 
 
