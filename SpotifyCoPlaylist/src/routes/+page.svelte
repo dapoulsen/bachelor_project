@@ -23,19 +23,24 @@
         state: 0
     });
 
+    async function refreshLeaderboard() {
+        try {
+            const data = await getLeaderboard();
+            console.log("Refreshed leaderboard data:", data);
+            leaderboardState = data;
+        } catch (error) {
+            console.error("Error refreshing leaderboard:", error);
+        }
+    }
+
+
     onMount(() => {
         let interval: ReturnType<typeof setInterval>;
-        
-        // Use an immediately invoked async function
-        (async () => {
-            const data = await getLeaderboard();
-            leaderboardState = data;
-            
-            interval = setInterval(async () => {
-                const updatedData = await getLeaderboard();
-                leaderboardState = updatedData;
-            }, 5000);
-        })();
+        console.log("WHATUP!");
+
+        refreshLeaderboard();
+
+        interval = setInterval(refreshLeaderboard, 5000);
         
         // Return the cleanup function directly
         return () => {
@@ -48,23 +53,37 @@
     }
 
     async function queueSong() {
-        if (leaderboardState.list.length === 0) {
-            let track = leaderboardState.list[0].track;
-            await queueSelectedSong(track, accessToken);
-            await removeFromLeaderboard(track.id);
-
-            const updatedData = await getLeaderboard();
-            leaderboardState = updatedData;
+        if (leaderboardState.list.length > 0) { // FIXED: Check if list is NOT empty
+            try {
+                let track = leaderboardState.list[0].track;
+                console.log("Queueing song:", track.name);
+                await queueSelectedSong(track, accessToken);
+                await removeFromLeaderboard(track.id);
+                await refreshLeaderboard();
+            } catch (error) {
+                console.error("Error queueing song:", error);
+            }
+        } else {
+            console.log("No songs in leaderboard to queue");
         }
-        
     }
 
-    async function handleVote(trackId:string, action: 'increment' | 'decrement') {
-        await voteForTrack(trackId, action);
-        const updatedData = await getLeaderboard();
-        leaderboardState = updatedData;
+    async function handleVote(trackId: string, action: 'increment' | 'decrement') {
+    try {
+        console.log(`Voting ${action} for track ${trackId}`);
+        const result = await voteForTrack(trackId, action);
+        console.log('Vote result:', result);
+        await refreshLeaderboard();
+    } catch (error) {
+        console.error('Error in handleVote:', error);
     }
+}
         
+
+    async function handleSongAdded(track:SpotifyTrack) {
+        console.log("Song added:", track.name);
+        await refreshLeaderboard();
+    }
     
     
 </script>
@@ -81,7 +100,6 @@
     {#if !leaderboardState.initialized}
         <p class="text-gray-400">Loading...</p>
     {:else}
-        <p class="text-gray-400">Welcome to the Music Leaderboard! Add songs to the leaderboard and vote on your favorites.</p>
     
     <!-- Buttons -->
     <div class="flex space-x-4 mb-8">
@@ -101,8 +119,7 @@
 
     <!-- Dynamic Content -->
     {#if userState.state === 1}
-        <AddSong  />
-    <!-- {:else if userState.state === 2} -->
+        <AddSong  onSongAdded={handleSongAdded}/>
     {/if}
 
     <!-- Leaderboard -->
@@ -163,15 +180,6 @@
     :global(html) {
         background-color: #121212;
     }
-    
-    :global(p), 
-    :global(h1), 
-    :global(h2), 
-    :global(h3), 
-    :global(h4), 
-    :global(h5), 
-    :global(h6) {
-        color: #ddd5d5;
-    }
+
 
 </style>

@@ -36,7 +36,9 @@ export class LeaderboardState {
 
     incrementVotes(item: SpotifyTrack){
         const existingTrack = this.list.find(entry => entry.track.id === item.id);
+        console.log(existingTrack?.track.name);
         if(existingTrack){
+            console.log("incrementing votes niiiiii");
             existingTrack.votes ++;
         }
         return this.getStatus();

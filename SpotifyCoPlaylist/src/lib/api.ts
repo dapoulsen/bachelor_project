@@ -35,12 +35,25 @@ export async function removeFromLeaderboard(trackId: string) {
 }
 
 export async function voteForTrack(trackId: string, action: 'increment' | 'decrement') {
-    const res = await fetch("api/leaderboard/vote", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ id: trackId, action })
-    });
-    return await res.json();
+    try {
+        const response = await fetch('/api/leaderboard/vote', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id: trackId, action })
+        });
+        
+        if (!response.ok) {
+            console.error('Failed to vote for track:', await response.text());
+            throw new Error('Failed to vote for track');
+        } else {
+            console.log('Voted for track successfully!');
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Error voting for track:', error);
+        throw error;
+    }
 }
