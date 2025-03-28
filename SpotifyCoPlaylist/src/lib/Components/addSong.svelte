@@ -4,7 +4,7 @@
     } from "$lib/script"
     import type { SpotifySearchResponse, SpotifyTrack } from '$lib/types';
     import Cookies from "js-cookie";
-    import {Leaderboard} from "./leaderboard.svelte.ts";
+    import {Leaderboard} from "$lib/leaderboard.svelte.ts";
 
     
     let {leaderboard} : {

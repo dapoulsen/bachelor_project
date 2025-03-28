@@ -1,6 +1,6 @@
 <script lang="ts">
-    import SpotifyAuth from "../spotifyAuth.svelte";
-    import CurrentlyPlaying from "../CurrentlyPlaying.svelte";
+    import SpotifyAuth from "$lib/Components/spotifyAuth.svelte";
+    import CurrentlyPlaying from "$lib/Components/CurrentlyPlaying.svelte";
 
     let currentTrack = $state({
         track: null,

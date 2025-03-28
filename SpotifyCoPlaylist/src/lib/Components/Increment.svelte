@@ -1,5 +1,5 @@
 <script lang="ts">
-import { type IncrementStrategy, AlphaIS, BetaIS } from "./IncrementStrategy.svelte";
+import { type IncrementStrategy, AlphaIS, BetaIS } from "$lib/IncrementStrategy.svelte";
 // import { IncrementStrategy } from "./IncrementStrategy.svelte";
 
 // svelte-ignore non_reactive_update
