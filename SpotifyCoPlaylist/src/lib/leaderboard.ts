@@ -33,18 +33,16 @@ export class LeaderboardState {
         return this.getStatus();
     }
 
-    incrementVotes(item: SpotifyTrack){
-        const existingTrack = this.list.find(entry => entry.track.id === item.id);
-        console.log(existingTrack?.track.name);
+    incrementVotes(itemId: string){
+        const existingTrack = this.list.find(entry => entry.track.id === itemId);
         if(existingTrack){
-            console.log("incrementing votes niiiiii");
             existingTrack.votes ++;
         }
         return this.getStatus();
     }
 
-    decrementVotes(item: SpotifyTrack){
-        const existingTrack = this.list.find(entry => entry.track.id === item.id);
+    decrementVotes(itemId: string){
+        const existingTrack = this.list.find(entry => entry.track.id === itemId);
         if(existingTrack){
             existingTrack.votes --;
         }

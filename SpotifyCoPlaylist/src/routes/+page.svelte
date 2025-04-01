@@ -68,10 +68,10 @@
         }
     }
 
-    async function handleVote(trackId: string, action: 'increment' | 'decrement') {
+    async function handleVote(track: SpotifyTrack, action: 'increment' | 'decrement') {
     try {
-        console.log(`Voting ${action} for track ${trackId}`);
-        const result = await voteForTrack(trackId, action);
+        console.log(`Voting ${action} for track ${track.id}`);
+        const result = await voteForTrack(track.id, action);
         console.log('Vote result:', result);
         await refreshLeaderboard();
     } catch (error) {
@@ -149,7 +149,7 @@
                             <button 
                                 id="vote-button-yes"
                                 class="bg-green-500 hover:bg-green-400 text-white font-bold py-2 px-5 rounded shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-300 space-x-2"
-                                onclick={() => handleVote(item.track.id, 'increment')}
+                                onclick={() => handleVote(item.track, 'increment')}
                                 >
                                     ⬆️ <span>Upvote</span>
                             </button>
@@ -157,7 +157,7 @@
                             <button 
                                 id="vote-button-no"
                                 class="bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-5 rounded shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-300 space-x-2"
-                                onclick={() => handleVote(item.track.id, 'decrement')}
+                                onclick={() => handleVote(item.track, 'decrement')}
                                 >
                                 ⬇️ <span>Downvote</span>
                             </button>
