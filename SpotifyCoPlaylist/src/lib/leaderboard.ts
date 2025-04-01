@@ -1,5 +1,4 @@
 import type { SpotifyTrack } from "$lib/types";
-import { getContext, onDestroy, setContext } from "svelte";
 
 export class LeaderboardState {
     private list: Array<{ track: SpotifyTrack, votes: number }> = [];
