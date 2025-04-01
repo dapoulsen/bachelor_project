@@ -28,8 +28,8 @@ export class LeaderboardState {
         };
     }
 
-    removeFromLeaderboard(item: SpotifyTrack){
-        this.list = this.list.filter(entry => entry.track.id !== item.id);
+    removeFromLeaderboard(itemId: string){
+        this.list = this.list.filter(entry => entry.track.id !== itemId);
         return this.getStatus();
     }
 
