@@ -6,6 +6,11 @@
     import { Tween } from "svelte/motion";
     import { getLeaderboard, removeFromLeaderboard } from "$lib/api";
     
+
+    let { onPlayStateChange } = $props<{
+        onPlayStateChange?: (is_playing: boolean) => void;
+    }>();
+
     let accessToken = Cookies.get("spotify_access_token") || ""; // Retrieve from cookies
 
     let currentlyPlaying = $state<SpotifyTrack | null>(null);
@@ -75,7 +80,16 @@
         
             const song = data.item;
             const progressMs = data.progress_ms || 0;
+
+            //store the previous play state
+            const wasPlaying = is_playing;
+            //Update the play state
             is_playing = data.is_playing !== undefined ? data.is_playing : false; // Default to false if undefined
+
+            // Notify parent if play state changed
+            if (wasPlaying !== is_playing && onPlayStateChange) {
+                onPlayStateChange(is_playing);
+            }
 
             // Check if it's a new song or first load
             if (!currentlyPlaying || currentlyPlaying.id !== song.id) {
