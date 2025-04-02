@@ -1,6 +1,5 @@
 <script lang="ts">
-    import { onMount } from "svelte";
-    import { writable } from "svelte/store";
+    import { onMount, onDestroy } from "svelte";
     import Cookies from "js-cookie";
     import type { SpotifyTrack } from "$lib/types.js";
     import { fetchCurrentTrack } from "$lib/script";
@@ -9,43 +8,131 @@
     let accessToken = Cookies.get("spotify_access_token") || ""; // Retrieve from cookies
 
     let currentlyPlaying = $state<SpotifyTrack | null>(null);
-    let progress = new Tween(0);
+    let is_playing = $state(false);
+    let duration = $state(0);
+    let startTime = $state(0);
+    
+    //Create a Tween instance to animate the progress bar
+    const progress = new Tween(0, { duration: 100});
+
+    let updateInterval = $state<ReturnType<typeof setInterval> | null>(null);
+    let syncInterval = $state<ReturnType<typeof setInterval> | null>(null);
+
     
 
-
     async function updateSong() {
-        const song = await fetchCurrentTrack(accessToken);
-        currentlyPlaying = song;
-    }
-
-    async function getCurrentTrackId() {
-        const song = await fetchCurrentTrack(accessToken);
-        return song;
-    }
-    onMount(() => {
-        let duration = 1000;
-        if (currentlyPlaying === null) {
-            updateSong();
-        } 
-            
-        getCurrentTrackId().then(song => {
-            if (song?.id !== currentlyPlaying?.id && currentlyPlaying && song){
-                currentlyPlaying = song;
-                duration = currentlyPlaying.duration_ms;
+        try {
+            const data = await fetchCurrentTrack(accessToken);
+            if (!data) {
+                stopProgress();
+                currentlyPlaying = null
+                return;
             }
-        });
-        
+            console.log("Current track data:", data);
 
-        const interval = setInterval(updateSong, duration);
-        return () => clearInterval(interval);
+            // Check if data has the expected structure
+            if (!data.item) {
+                console.error("Invalid data structure from API:", data);
+                return;
+            }
+        
+            const song = data.item;
+            const progressMs = data.progress_ms || 0;
+            is_playing = data.is_playing !== undefined ? data.is_playing : false; // Default to false if undefined
+
+            // Check if it's a new song or first load
+            if (!currentlyPlaying || currentlyPlaying.id !== song.id) {
+                console.log("New song detected:", song);
+                currentlyPlaying = song;
+                startNewSongProgress(song, progressMs);
+            } else {
+                // Same song, just sync progress
+                syncProgress(progressMs);
+            }
+
+             // If not playing, stop the progress
+             if (!is_playing) {
+                stopProgress();
+            } else if (!updateInterval) {
+                // If playing but no interval, restart progress tracking
+                startNewSongProgress(song, progressMs);
+            }
+
+    } catch (error) {
+            console.error("Error fetching current track:", error);
+        }
+    }
+
+    // Start progress tracking for a new song
+    function startNewSongProgress(song: SpotifyTrack, progressMs: number) {
+        // Safety check
+        if (!song || typeof song.duration_ms !== 'number') {
+            console.error("Invalid song object:", song);
+            return;
+        }
+        // Clear any existing intervals
+        stopProgress();
+
+        //Initialize progress tracking
+        duration = song.duration_ms;
+        const initialProgress = progressMs || 0;
+        startTime = Date.now() - initialProgress;
+
+        // Set initial progress immediately
+        progress.set(initialProgress, { duration: 0 }); // No animation for the first set
+
+        console.log(`Starting progress for: ${song.name}`);
+
+        if (is_playing) {
+            updateInterval = setInterval(() => {
+            const elapsed = Date.now() - startTime;
+            if (elapsed <= duration) {
+                progress.set(elapsed); // Update progress bar
+            } else {
+                updateSong();
+            }
+            }, 1000); // Update every second}
+        }
+    }
+
+    // Sync progress with the server
+    function syncProgress(progressMs: number) {
+        if (!currentlyPlaying) return; // Safety check
+        const clientProgress = Date.now() - startTime;
+
+        if (Math.abs(clientProgress - progressMs) > 2000) {
+            console.log("Syncing progress:", formatTime(clientProgress), formatTime(progressMs));
+            startTime = Date.now() - progressMs;
+            progress.set(progressMs, { duration: 1000 }); // Animate to the new progress
+            }
+        
+    }
+    
+
+    function stopProgress() {
+        if (updateInterval) {
+            clearInterval(updateInterval);
+            updateInterval = null;
+        }
+    }
+
+    function formatTime(ms: number): string {
+        const totalSeconds = Math.floor(ms / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${minutes}:${seconds.toString().padStart(2, '0' )}`;
+    }
+
+    onMount(() => {
+        updateSong();
+
+        syncInterval = setInterval(updateSong, 10000)
     });
 
-    $effect(() => {
-        if (currentlyPlaying) {
-            progress = new Tween(0, {
-                duration: currentlyPlaying.duration_ms
-            });
-            progress.target = 1;
+    onDestroy(() => {
+        stopProgress();
+        if (syncInterval) {
+            clearInterval(syncInterval);
         }
     });
 
@@ -60,10 +147,13 @@
             <p class="text-xl font-bold">{currentlyPlaying.name}</p>
             <p class="text-lg">{currentlyPlaying.artists[0].name}</p>
             
+            <progress value={progress.current} max={duration} class="w-full mt-2"></progress>
+            <div class="flex justify-between text-sm text-gray-400 mt-1">
+                <span>{formatTime(progress.current)}</span>
+                <span>{formatTime(duration)}</span>
+            </div>
         </div>
     </div>
-    <progress value={progress.current}></progress>
-    <p>{progress.current}</p>
 {:else}
     <h1 class="text-4xl font-bold mb-6"> No song currently playing </h1>
 {/if}
@@ -72,5 +162,25 @@
     progress {
         display: block;
         width: 100%;
+        height: 8px;
+        border-radius: 4px;
+        overflow: hidden;
+        background-color: #333;
+    }
+    
+    progress::-webkit-progress-bar {
+        background-color: #333;
+        border-radius: 4px;
+    }
+    
+    progress::-webkit-progress-value {
+        background-color: #1DB954; /* Spotify green */
+        border-radius: 4px;
+        transition: width 0.1s linear;
+    }
+    
+    progress::-moz-progress-bar {
+        background-color: #1DB954;
+        border-radius: 4px;
     }
 </style>

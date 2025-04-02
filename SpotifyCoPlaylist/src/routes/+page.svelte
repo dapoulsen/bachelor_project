@@ -6,6 +6,7 @@
     import { queueSelectedSong } from "$lib/script"
     import { onMount } from "svelte";
     import { getLeaderboard, voteForTrack, removeFromLeaderboard } from "$lib/api";
+    import CurrentlyPlaying from "$lib/Components/CurrentlyPlaying.svelte";
     
     interface LeaderboardItem {
         track: SpotifyTrack;
@@ -100,6 +101,8 @@
     {#if !leaderboardState.initialized}
         <p class="text-gray-400">Loading...</p>
     {:else}
+
+    <CurrentlyPlaying />
     
     <!-- Buttons -->
     <div class="flex space-x-4 mb-8">

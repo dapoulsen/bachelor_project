@@ -35,7 +35,6 @@ export interface SpotifyTopTracksResponse {
 }
   
 export interface SpotifyTrack {
-    votes: number;
     album: SpotifyAlbum;
     artists: SpotifyArtist[];
     available_markets: string[];

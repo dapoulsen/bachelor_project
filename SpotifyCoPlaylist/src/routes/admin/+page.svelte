@@ -12,7 +12,8 @@
 
     onMount(async () => {
         const data = await getLeaderboard();
-        leaderboardState = data.initialized;
+        console.log(data);
+        leaderboardState.initialized = data.initialized;
     });
 
     async function startSession(){
@@ -20,6 +21,10 @@
             const data = await initializeLeaderboard();
             console.log(data);
             leaderboardState.initialized = data.initialized;
+            // const startButton = document.getElementById("start-button");
+            // if (startButton) {
+            //     startButton.style.display = "none";
+            // }
         }
         start = true;
     }
@@ -30,7 +35,7 @@
 
 <main class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 to-black p-8 text-white">
     {#if !start}
-    <button class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300"
+    <button id="start-button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300"
      onclick={() => startSession()}>
         Start Session
     </button>

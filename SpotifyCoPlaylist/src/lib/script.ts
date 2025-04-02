@@ -236,18 +236,51 @@ export async function refreshAccessToken(clientId: string): Promise<string | nul
     return data.access_token;
 }
 
-export async function fetchCurrentTrack(token: string): Promise<SpotifyTrack | null> {
-    const response = await fetch("https://api.spotify.com/v1/me/player/currently-playing", {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}` }
-    });
+export async function fetchCurrentTrack(token: string): Promise<{
+    item: SpotifyTrack,
+    progress_ms: number,
+    is_playing: boolean
+} | null> {
+    try {
+        const response = await fetch("https://api.spotify.com/v1/me/player/currently-playing", {
+            method: "GET",
+            headers: { Authorization: `Bearer ${token}` }
+        });
+    
+        if (response.status === 204) {
+            // No content - nothing is playing
+            console.log("No track currently playing");
+            return null;
+        }
+    
+        if (!response.ok) {
+            console.error("Failed to fetch current track", response.status);
+            return null;
+        }
+    
+        const data = await response.json();
 
-    if (!response.ok) {
-        console.error("Failed to fetch current track", response.status);
+        // Check if the response already has the structure we expect
+        if (data.item && data.progress_ms !== undefined) {
+            return data;
+        }
+        
+        // If response is directly a track (no item wrapper)
+        if (data.id && data.duration_ms) {
+            // Create the expected structure
+            return {
+                item: data,
+                progress_ms: 0, // Default to start of track
+                is_playing: true // Default to playing
+            };
+        }
+        
+        console.error("Unexpected API response format:", data);
+        return null;
+    } catch (error) {
+        console.error("Error fetching current track:", error);
         return null;
     }
-
-    const data = await response.json();
-    return data.item;
+    
 }
 
