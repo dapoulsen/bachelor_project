@@ -3,11 +3,19 @@
     import CurrentlyPlaying from "$lib/Components/CurrentlyPlaying.svelte";
     import { onMount } from "svelte";
     import { initializeLeaderboard, getLeaderboard, resetLeaderboard } from "$lib/api";
+    import { 
+        skipSong,
+        playOrPause
+     } from "$lib/script";
+    import Cookies from "js-cookie";
+
+    let accessToken = Cookies.get("spotify_access_token") || ""; // Retrieve from cookies
 
     let leaderboardState = $state({
         initialized: false
     });
     let start = $state(false);
+    let isPlaying = $state(false);
 
 
     onMount(async () => {
@@ -34,6 +42,21 @@
         start = false;
     }
 
+    async function skip() {
+        if (leaderboardState.initialized) {
+            const data = await skipSong(accessToken);
+            console.log(data);
+        }
+    }
+
+    async function togglePlay(is_playing: boolean) {
+        if (leaderboardState.initialized) {
+            const data = await playOrPause(accessToken, is_playing);
+            console.log(data);
+            isPlaying = !is_playing; // Toggle the play state
+        }
+    }
+
 </script>
 
 <SpotifyAuth />
@@ -46,6 +69,15 @@
     </button>
     {:else}
     <CurrentlyPlaying />
+    <div>
+        <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300"
+         onclick={() => skip()}>
+            Skip Song
+        </button>
+        <button class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300"
+         onclick={() => togglePlay(isPlaying)}>
+            {isPlaying ? "Pause" : "Play"}
+    </div>
     <button class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300"
      onclick={() => stopSession()}>
         End Session

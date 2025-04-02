@@ -284,3 +284,33 @@ export async function fetchCurrentTrack(token: string): Promise<{
     
 }
 
+export async function skipSong(token:string) {
+    const response = await fetch(`https://api.spotify.com/v1/me/player/next`, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });   
+
+    if (!response.ok) {
+        console.error("Failed to skip song:", await response.json());
+    } else {
+        console.log("Song skipped successfully!");
+    }
+}
+
+export async function playOrPause(token:string, isPlaying:boolean) {
+    const response = await fetch(`https://api.spotify.com/v1/me/player/${isPlaying ? 'pause' : 'play'}`, {
+        method: "PUT",
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        console.error("Failed to play/pause:", await response.json());
+    } else {
+        console.log("Playback toggled successfully!");
+    }
+}
+
