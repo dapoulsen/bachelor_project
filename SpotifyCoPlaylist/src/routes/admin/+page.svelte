@@ -17,6 +17,10 @@
     let start = $state(false);
     let isPlaying = $state(false);
 
+    function handlePlayStateChange(is_playing: boolean) {
+        isPlaying = is_playing;
+    }
+
 
     onMount(async () => {
         const data = await getLeaderboard();
@@ -68,7 +72,7 @@
         Start Session
     </button>
     {:else}
-    <CurrentlyPlaying />
+    <CurrentlyPlaying onPlayStateChange={handlePlayStateChange} />
     <div>
         <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300"
          onclick={() => skip()}>
