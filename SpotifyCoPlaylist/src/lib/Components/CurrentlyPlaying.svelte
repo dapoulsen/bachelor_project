@@ -2,24 +2,61 @@
     import { onMount, onDestroy } from "svelte";
     import Cookies from "js-cookie";
     import type { SpotifyTrack } from "$lib/types.js";
-    import { fetchCurrentTrack } from "$lib/script";
+    import { fetchCurrentTrack, queueSelectedSong } from "$lib/script";
     import { Tween } from "svelte/motion";
-
+    import { getLeaderboard, removeFromLeaderboard } from "$lib/api";
+    
     let accessToken = Cookies.get("spotify_access_token") || ""; // Retrieve from cookies
 
     let currentlyPlaying = $state<SpotifyTrack | null>(null);
     let is_playing = $state(false);
     let duration = $state(0);
     let startTime = $state(0);
-    
+    let hasAddedSong = false;
     //Create a Tween instance to animate the progress bar
     const progress = new Tween(0, { duration: 100});
 
     let updateInterval = $state<ReturnType<typeof setInterval> | null>(null);
     let syncInterval = $state<ReturnType<typeof setInterval> | null>(null);
-
+    interface LeaderboardItem {
+        track: SpotifyTrack;
+        votes: number;
+    }
+    let leaderboardState = $state({
+        list: [] as LeaderboardItem[]
+    })
+    async function refreshLeaderboard() {
+        try {
+            const data = await getLeaderboard();
+            console.log("Refreshed leaderboard data:", data);
+            leaderboardState = data;
+        } catch (error) {
+            console.error("Error refreshing leaderboard:", error);
+        }
+    }
     
-
+    async function addToQueue() {
+        if (hasAddedSong === false){
+        await refreshLeaderboard(); 
+        if (leaderboardState.list.length > 0){
+            try{
+                
+                console.log("Halloooo jeg er lige her");
+                let track = leaderboardState.list[0].track;
+                console.log("Queueing song:", track.name);
+                await queueSelectedSong(track, accessToken);
+                hasAddedSong = true
+                await removeFromLeaderboard(track.id);
+                await refreshLeaderboard();            
+            } catch (error) {
+                console.error("Hallo idiot, det virker ikk", error);
+            }
+        } else {
+            console.log("har du overvejet at der skal være sange her");
+        }
+    }
+        
+    }
     async function updateSong() {
         try {
             const data = await fetchCurrentTrack(accessToken);
@@ -45,6 +82,7 @@
                 console.log("New song detected:", song);
                 currentlyPlaying = song;
                 startNewSongProgress(song, progressMs);
+                hasAddedSong = false;
             } else {
                 // Same song, just sync progress
                 syncProgress(progressMs);
@@ -86,6 +124,9 @@
         if (is_playing) {
             updateInterval = setInterval(() => {
             const elapsed = Date.now() - startTime;
+            if (elapsed >= duration - 5000){
+                addToQueue();
+            }
             if (elapsed <= duration) {
                 progress.set(elapsed); // Update progress bar
             } else {
