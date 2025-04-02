@@ -2,7 +2,7 @@
     import SpotifyAuth from "$lib/Components/spotifyAuth.svelte";
     import CurrentlyPlaying from "$lib/Components/CurrentlyPlaying.svelte";
     import { onMount } from "svelte";
-    import { initializeLeaderboard, getLeaderboard } from "$lib/api";
+    import { initializeLeaderboard, getLeaderboard, resetLeaderboard } from "$lib/api";
 
     let leaderboardState = $state({
         initialized: false
@@ -21,12 +21,17 @@
             const data = await initializeLeaderboard();
             console.log(data);
             leaderboardState.initialized = data.initialized;
-            // const startButton = document.getElementById("start-button");
-            // if (startButton) {
-            //     startButton.style.display = "none";
-            // }
         }
         start = true;
+    }
+
+    async function stopSession() {
+        if (leaderboardState.initialized) {
+            const data = await resetLeaderboard();
+            console.log(data);
+            leaderboardState.initialized = data.initialized;
+        }
+        start = false;
     }
 
 </script>
@@ -41,5 +46,9 @@
     </button>
     {:else}
     <CurrentlyPlaying />
+    <button class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300"
+     onclick={() => stopSession()}>
+        End Session
+    </button>
     {/if}
 </main>

@@ -21,6 +21,12 @@ export class LeaderboardState {
         return this.getStatus();
     }
 
+    reset() {
+        this.list = [];
+        this.initialized = false;
+        return this.getStatus();
+    }
+
     getStatus() {
         return {
             list: this.list,

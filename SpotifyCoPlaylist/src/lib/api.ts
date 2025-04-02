@@ -12,6 +12,13 @@ export async function initializeLeaderboard() {
     return await res.json();
 }
 
+export async function resetLeaderboard() {
+    const res = await fetch("api/leaderboard/reset", {
+        method: "POST"
+    });
+    return await res.json();
+}
+
 export async function addToLeaderboard(track: SpotifyTrack) {
     const res = await fetch("api/leaderboard/add", {
         method: "POST",
