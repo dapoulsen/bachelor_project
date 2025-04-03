@@ -64,9 +64,10 @@
     }
     async function updateSong() {
         try {
-            
+            console.log(getAdminToken());
             const data = await fetchCurrentTrack(getAdminToken());
             if (!data) {
+                console.log(getAdminToken());
                 stopProgress();
                 currentlyPlaying = null
                 return;
