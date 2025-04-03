@@ -50,7 +50,7 @@
                 console.log("Halloooo jeg er lige her");
                 let track = leaderboardState.list[0].track;
                 console.log("Queueing song:", track.name);
-                await queueSelectedSong(track, accessToken);
+                await queueSelectedSong(track, getAdminToken());
                 hasAddedSong = true
                 await removeFromLeaderboard(track.id);
                 await refreshLeaderboard();            
@@ -65,7 +65,7 @@
     }
     async function updateSong() {
         try {
-            if(getAdminToken()){}
+            
             const data = await fetchCurrentTrack(getAdminToken());
             if (!data) {
                 stopProgress();
