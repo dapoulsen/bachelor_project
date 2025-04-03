@@ -5,6 +5,7 @@
     import { fetchCurrentTrack, queueSelectedSong } from "$lib/script";
     import { Tween } from "svelte/motion";
     import { getLeaderboard, removeFromLeaderboard } from "$lib/api";
+    import { getAdminToken } from "../../routes/admin/store";
     
 
     let { onPlayStateChange } = $props<{
@@ -64,7 +65,8 @@
     }
     async function updateSong() {
         try {
-            const data = await fetchCurrentTrack(accessToken);
+            if(getAdminToken()){}
+            const data = await fetchCurrentTrack(getAdminToken());
             if (!data) {
                 stopProgress();
                 currentlyPlaying = null

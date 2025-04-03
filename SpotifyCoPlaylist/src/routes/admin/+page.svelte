@@ -8,6 +8,7 @@
         playOrPause
      } from "$lib/script";
     import Cookies from "js-cookie";
+    import { setAdminToken } from "./store";
 
     let accessToken = Cookies.get("spotify_access_token") || ""; // Retrieve from cookies
 
@@ -33,6 +34,7 @@
             const data = await initializeLeaderboard();
             console.log(data);
             leaderboardState.initialized = data.initialized;
+            setAdminToken(accessToken);
         }
         start = true;
     }
@@ -42,6 +44,7 @@
             const data = await resetLeaderboard();
             console.log(data);
             leaderboardState.initialized = data.initialized;
+            setAdminToken("");
         }
         start = false;
     }
