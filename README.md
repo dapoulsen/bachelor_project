@@ -1,5 +1,9 @@
 # BachelorProject
 
+## TODO
+Create AdminToken in API
+Alternatively make fetchSong a global field
+
 
 
 ## Getting started
