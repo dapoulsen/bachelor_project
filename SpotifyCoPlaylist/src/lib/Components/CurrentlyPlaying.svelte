@@ -47,7 +47,6 @@
         if (leaderboardState.list.length > 0){
             try{
                 
-                console.log("Halloooo jeg er lige her");
                 let track = leaderboardState.list[0].track;
                 console.log("Queueing song:", track.name);
                 await queueSelectedSong(track, accessToken);

@@ -45,7 +45,7 @@ function generateCodeVerifier(length: number) {
         text += possible.charAt(Math.floor(Math.random() * possible.length));
     }
     return text;
-}
+} 
 
 async function generateCodeChallenge(codeVerifier: string) {
     const data = new TextEncoder().encode(codeVerifier);
