@@ -5,25 +5,52 @@
     import { fetchCurrentTrack, queueSelectedSong } from "$lib/script";
     import { Tween } from "svelte/motion";
     import { getLeaderboard, removeFromLeaderboard } from "$lib/api";
-    import { getAdminToken } from "../../routes/admin/store";
+    import { getAdminToken } from "$lib/Server/adminToken";
+    import { adminToken, refreshToken, debugTokenState } from "$lib/adminTokenManager";
     
+    // Add this debug function
+    async function debugToken() {
+        console.log("------ Token Debug ------");
+        console.log("Current adminToken value from store:", $adminToken ? "✅ Token exists" : "❌ No token");
+        
+        debugTokenState();
+        
+        console.log("Forcing token refresh...");
+        const result = await refreshToken();
+        console.log("Force refresh result:", result ? "✅ Success" : "❌ Failed");
+        
+        // Manual API check
+        try {
+            const response = await fetch('/api/admin-token');
+            const data = await response.json();
+            console.log("Direct API response:", data);
+        } catch (error) {
+            console.error("Error making direct API call:", error);
+        }
+        console.log("------------------------");
+    }
 
     let { onPlayStateChange } = $props<{
         onPlayStateChange?: (is_playing: boolean) => void;
     }>();
 
-    let accessToken = Cookies.get("spotify_access_token") || ""; // Retrieve from cookies
+    // let accessToken = Cookies.get("spotify_access_token") || ""; // Retrieve from cookies
 
+    // State for component
     let currentlyPlaying = $state<SpotifyTrack | null>(null);
     let is_playing = $state(false);
     let duration = $state(0);
     let startTime = $state(0);
+
     let hasAddedSong = false;
     //Create a Tween instance to animate the progress bar
     const progress = new Tween(0, { duration: 100});
 
+    // Intervals for updating song progress and syncing with server
     let updateInterval = $state<ReturnType<typeof setInterval> | null>(null);
     let syncInterval = $state<ReturnType<typeof setInterval> | null>(null);
+
+        
     interface LeaderboardItem {
         track: SpotifyTrack;
         votes: number;
@@ -31,6 +58,8 @@
     let leaderboardState = $state({
         list: [] as LeaderboardItem[]
     })
+
+
     async function refreshLeaderboard() {
         try {
             const data = await getLeaderboard();
@@ -43,16 +72,19 @@
     
     async function addToQueue() {
         if (hasAddedSong === false){
-        await refreshLeaderboard(); 
-        if (leaderboardState.list.length > 0){
-            try{
-                
-                let track = leaderboardState.list[0].track;
-                console.log("Queueing song:", track.name);
-                await queueSelectedSong(track, getAdminToken());
-                hasAddedSong = true
-                await removeFromLeaderboard(track.id);
-                await refreshLeaderboard();            
+            await refreshLeaderboard(); 
+            if (leaderboardState.list.length > 0){
+                try{
+                    if (!$adminToken) {
+                        console.error("No admin token available. Cannot queue song.");
+                        return;
+                    }
+                    let track = leaderboardState.list[0].track;
+                    console.log("Queueing song:", track.name);
+                    await queueSelectedSong(track, $adminToken);
+                    hasAddedSong = true
+                    await removeFromLeaderboard(track.id);
+                    await refreshLeaderboard();            
             } catch (error) {
                 console.error("Hallo idiot, det virker ikk", error);
             }
@@ -64,10 +96,22 @@
     }
     async function updateSong() {
         try {
-            console.log(getAdminToken());
-            const data = await fetchCurrentTrack(getAdminToken());
+            // Make sure we have a token
+            if (!$adminToken) {
+                console.error("No admin token available. Cannot fetch current track.");
+
+                //Force token refresh
+                const hasToken = await refreshToken();
+                if (!hasToken) {
+                    console.error("Failed to refresh token.");
+                    debugTokenState();
+                    return;
+                } 
+
+            }
+
+            const data = await fetchCurrentTrack($adminToken);
             if (!data) {
-                console.log(getAdminToken());
                 stopProgress();
                 currentlyPlaying = null
                 return;
@@ -180,9 +224,15 @@
         return `${minutes}:${seconds.toString().padStart(2, '0' )}`;
     }
 
-    onMount(() => {
+    onMount(async () => {
+        console.log("CurrentlyPlaying component mounting, checking for token...");
+        console.log("Initial token state:", $adminToken ? "Token exists" : "No token");
+        if (!$adminToken) {
+            console.log("No token on mount, attempting refresh...");
+            const hasToken = await refreshToken();
+            console.log("Initial token refresh result:", hasToken ? "✅ Success" : "❌ Failed");
+        }
         updateSong();
-
         syncInterval = setInterval(updateSong, 10000)
     });
 
@@ -214,6 +264,15 @@
 {:else}
     <h1 class="text-4xl font-bold mb-6"> No song currently playing </h1>
 {/if}
+
+<div class="mt-4">
+    <button 
+        class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600"
+        onclick={debugToken}
+    >
+        Debug Token
+    </button>
+</div>
 
 <style>
     progress {

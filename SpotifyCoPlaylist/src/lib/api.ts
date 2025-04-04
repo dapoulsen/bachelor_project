@@ -64,3 +64,48 @@ export async function voteForTrack(trackId: string, action: 'increment' | 'decre
         throw error;
     }
 }
+
+
+ // Create a function to set admin token on the server
+ export async function setServerAdminToken(token: string): Promise<boolean> {
+    try {
+        const response = await fetch('/api/admin-token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ token })
+        });
+        
+        if (!response.ok) {
+            console.error('Failed to set admin token:', response.statusText);
+            return false;
+        }
+        
+        const data = await response.json();
+        return data.success || false;
+    } catch (error) {
+        console.error('Error setting admin token:', error);
+        return false;
+    }
+}
+
+// Create a function to clear the token on the server
+export async function clearServerAdminToken(): Promise<boolean> {
+    try {
+        const response = await fetch('/api/admin-token', { 
+            method: 'DELETE' 
+        });
+        
+        if (!response.ok) {
+            console.error('Failed to clear admin token:', response.statusText);
+            return false;
+        }
+        
+        const data = await response.json();
+        return data.success === true;
+    } catch (error) {
+        console.error('Error clearing admin token:', error);
+        return false;
+    }
+}

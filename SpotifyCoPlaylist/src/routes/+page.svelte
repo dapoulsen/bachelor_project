@@ -7,6 +7,7 @@
     import { onMount } from "svelte";
     import { getLeaderboard, voteForTrack, removeFromLeaderboard } from "$lib/api";
     import CurrentlyPlaying from "$lib/Components/CurrentlyPlaying.svelte";
+    import { adminToken } from "$lib/adminTokenManager"; // Import the admin token manager
     
     interface LeaderboardItem {
         track: SpotifyTrack;
@@ -18,7 +19,8 @@
         initialized: false
     });
 
-    let accessToken = Cookies.get("spotify_access_token") || ""; // Retrieve from cookies
+    // let accessToken = Cookies.get("spotify_access_token") || ""; // Retrieve from cookies
+    
 
     let userState = $state({
         state: 0
@@ -37,7 +39,6 @@
 
     onMount(() => {
         let interval: ReturnType<typeof setInterval>;
-        console.log("WHATUP!");
 
         refreshLeaderboard();
 
@@ -56,9 +57,15 @@
     async function queueSong() {
         if (leaderboardState.list.length > 0) { // FIXED: Check if list is NOT empty
             try {
+
+                if (!$adminToken) {
+                    console.error("Admin token is not set. Cannot queue song.");
+                    return;
+                }
+
                 let track = leaderboardState.list[0].track;
                 console.log("Queueing song:", track.name);
-                await queueSelectedSong(track, accessToken);
+                await queueSelectedSong(track, $adminToken);
                 await removeFromLeaderboard(track.id);
                 await refreshLeaderboard();
             } catch (error) {

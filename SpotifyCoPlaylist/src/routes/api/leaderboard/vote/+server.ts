@@ -1,4 +1,4 @@
-import { leaderboardState } from "$lib/leaderboard";
+import { leaderboardState } from "$lib/Server/leaderboard";
 import { json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 

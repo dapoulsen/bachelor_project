@@ -2,13 +2,13 @@
     import SpotifyAuth from "$lib/Components/spotifyAuth.svelte";
     import CurrentlyPlaying from "$lib/Components/CurrentlyPlaying.svelte";
     import { onMount } from "svelte";
-    import { initializeLeaderboard, getLeaderboard, resetLeaderboard } from "$lib/api";
+    import { initializeLeaderboard, getLeaderboard, resetLeaderboard, setServerAdminToken, clearServerAdminToken } from "$lib/api";
     import { 
         skipSong,
         playOrPause
      } from "$lib/script";
     import Cookies from "js-cookie";
-    import { setAdminToken } from "./store";
+    import { adminToken, refreshToken, debugTokenState, forceSetToken } from "$lib/adminTokenManager"; 
 
     let accessToken = Cookies.get("spotify_access_token") || ""; // Retrieve from cookies
 
@@ -22,29 +22,79 @@
         isPlaying = is_playing;
     }
 
-
     onMount(async () => {
         const data = await getLeaderboard();
         console.log(data);
         leaderboardState.initialized = data.initialized;
     });
 
+    async function debugAdminToken() {
+        console.log("------ Admin Token Debug ------");
+        console.log("Current token from store:", $adminToken ? "✅ Token exists" : "❌ No token");
+        debugTokenState();
+        
+        try {
+            console.log("Making direct API call...");
+            const response = await fetch('/api/admin-token');
+            const data = await response.json();
+            console.log("API response:", data);
+            
+            // Try to set token directly
+            console.log("Setting token again...");
+            const setResponse = await fetch('/api/admin-token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ token: accessToken })
+            });
+            console.log("Set token response:", await setResponse.json());
+            const setData = await setResponse.json();
+
+            // CRITICAL FIX: Force-set the token here too for debugging
+            if (setData.success && accessToken) {
+                forceSetToken(accessToken);
+                console.log("Token force-set in debug function");
+            }
+            
+            // Refresh the token in the client
+            await refreshToken();
+            console.log("Token after refresh:", $adminToken ? "✅ Token exists" : "❌ No token");
+        } catch (error) {
+            console.error("Error in debug function:", error);
+        }
+        console.log("----------------------------");
+    }
+
     async function startSession(){
         if (!leaderboardState.initialized) {
             const data = await initializeLeaderboard();
-            console.log(data);
             leaderboardState.initialized = data.initialized;
-            setAdminToken(accessToken);
+            // Set the admin token when session starts
+            
         }
+        const success = await setServerAdminToken(accessToken);
+        console.log(success);
+        if (success) {
+            console.log("Admin token set successfully.");
+            forceSetToken(accessToken); // Set the token in the client store
+
+            debugTokenState();
+
+        } else {
+            console.error("Failed to set admin token.");
+            return;
+        }
+        console.log("Session started:", $adminToken);
         start = true;
     }
 
     async function stopSession() {
         if (leaderboardState.initialized) {
             const data = await resetLeaderboard();
-            console.log(data);
+            console.log("Session ended");
             leaderboardState.initialized = data.initialized;
-            setAdminToken("");
+            await clearServerAdminToken(); // Clear the admin token when session ends
         }
         start = false;
     }
@@ -90,4 +140,9 @@
         End Session
     </button>
     {/if}
+    <button 
+    class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600 mt-4"
+    onclick={debugAdminToken}>
+    Debug Admin Token
+</button>
 </main>

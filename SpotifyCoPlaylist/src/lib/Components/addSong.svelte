@@ -4,14 +4,15 @@
     } from "$lib/script"
     import type { SpotifySearchResponse, SpotifyTrack } from '$lib/types';
     import Cookies from "js-cookie";
-    import { addToLeaderboard } from "$lib/api";
-    import { leaderboardState } from "$lib/leaderboard";
+    import { addToLeaderboard } from "$lib/api"
+    import { leaderboardState } from "$lib/Server/leaderboard";
+    import { adminToken } from "$lib/adminTokenManager";
 
     let  { onSongAdded } = $props<{
         onSongAdded?: (track: SpotifyTrack) => void
     }>();
 
-    let accessToken = Cookies.get("spotify_access_token") || ""; // Retrieve from cookies
+    // let accessToken = Cookies.get("spotify_access_token") || ""; // Retrieve from cookies
     let searchResults = $state<SpotifySearchResponse | null>(null);
 
     let songSearch = $state({
@@ -28,7 +29,12 @@
     }
 
     async function searchSongs() {
-        searchResults = await searchForSong(accessToken, songSearch.search);
+        if (!$adminToken) {
+            console.error("Admin token is not set. Cannot search for songs.");
+            return;
+        }
+
+        searchResults = await searchForSong($adminToken, songSearch.search);
     }
 
     async function addSongToLeaderboard(track: SpotifyTrack) {
@@ -89,7 +95,7 @@
                     </div>
                     <button 
                         class="ml-auto bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105"
-                        onclick={() => addSongToLeaderboard({...track, votes: 1})}
+                        onclick={() => addSongToLeaderboard(track)}
                     >
                         ➕ Add
                     </button>
