@@ -1,11 +1,9 @@
 <script lang="ts">
     import { onMount, onDestroy } from "svelte";
-    import Cookies from "js-cookie";
     import type { SpotifyTrack } from "$lib/types.js";
     import { fetchCurrentTrack, queueSelectedSong } from "$lib/script";
     import { Tween } from "svelte/motion";
     import { getLeaderboard, removeFromLeaderboard } from "$lib/api";
-    import { getAdminToken } from "$lib/Server/adminToken";
     import { adminToken, refreshToken, debugTokenState } from "$lib/adminTokenManager";
     
     // Add this debug function
@@ -96,6 +94,11 @@
     }
 
     async function updateSong(){
+
+        if (!currentlyPlaying) {
+            console.log("No song currently playing.");
+            return;
+        }
         
     }
     /*async function updateSong() {

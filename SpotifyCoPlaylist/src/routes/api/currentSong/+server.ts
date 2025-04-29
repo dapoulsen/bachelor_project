@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { getCurrentSong, setCurrentSong } from '$lib/Server/currentSong';
-import type { RequestHandler } from './$types';
+import type { RequestHandler } from '@sveltejs/kit';
 
 export const   GET: RequestHandler = async () => {
     try {

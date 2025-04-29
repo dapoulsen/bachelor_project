@@ -1,7 +1,5 @@
 <script lang="ts">
-    import SpotifyAuth from "$lib/Components/spotifyAuth.svelte";
     import AddSong from "$lib/Components/addSong.svelte";
-    import Cookies from "js-cookie";
     import type { SpotifyTrack } from "$lib/types.js";
     import { queueSelectedSong } from "$lib/script"
     import { onMount } from "svelte";
