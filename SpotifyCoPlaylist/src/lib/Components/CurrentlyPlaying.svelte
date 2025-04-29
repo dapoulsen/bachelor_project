@@ -95,46 +95,39 @@
         
     }
 
-    async function updateSong(){
-        
-    }
-    /*async function updateSong() {
+    async function updateSong() {
         try {
-            // Make sure we have a token
-            if (!$adminToken) {
-                console.error("No admin token available. Cannot fetch current track.");
+            // Fetch the current song from your own API
+            const response = await fetch('/api/current-song', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
 
-                //Force token refresh
-                const hasToken = await refreshToken();
-                if (!hasToken) {
-                    console.error("Failed to refresh token.");
-                    debugTokenState();
-                    return;
-                } 
-
-            }
-
-            const data = await fetchCurrentTrack($adminToken);
-            if (!data) {
+            if (!response.ok) {
+                console.error('Failed to fetch current song from API:', response.statusText);
                 stopProgress();
-                currentlyPlaying = null
+                currentlyPlaying = null;
                 return;
             }
-            console.log("Current track data:", data);
 
-            // Check if data has the expected structure
-            if (!data.item) {
-                console.error("Invalid data structure from API:", data);
+            const data = await response.json();
+
+            if (!data.currentSong) {
+                console.log('No song currently playing.');
+                stopProgress();
+                currentlyPlaying = null;
                 return;
             }
-        
-            const song = data.item;
+
+            const song = data.currentSong;
             const progressMs = data.progress_ms || 0;
 
-            //store the previous play state
+            // Store the previous play state
             const wasPlaying = is_playing;
-            //Update the play state
-            is_playing = data.is_playing !== undefined ? data.is_playing : false; // Default to false if undefined
+            // Update the play state
+            is_playing = data.is_playing !== undefined ? data.is_playing : false;
 
             // Notify parent if play state changed
             if (wasPlaying !== is_playing && onPlayStateChange) {
@@ -143,7 +136,7 @@
 
             // Check if it's a new song or first load
             if (!currentlyPlaying || currentlyPlaying.id !== song.id) {
-                console.log("New song detected:", song);
+                console.log('New song detected:', song);
                 currentlyPlaying = song;
                 startNewSongProgress(song, progressMs);
                 hasAddedSong = false;
@@ -152,19 +145,18 @@
                 syncProgress(progressMs);
             }
 
-             // If not playing, stop the progress
-             if (!is_playing) {
+            // If not playing, stop the progress
+            if (!is_playing) {
                 stopProgress();
             } else if (!updateInterval) {
                 // If playing but no interval, restart progress tracking
                 startNewSongProgress(song, progressMs);
             }
-
-    } catch (error) {
-            console.error("Error fetching current track:", error);
+        } catch (error) {
+            console.error('Error fetching current song from API:', error);
         }
     }
-*/
+
     // Start progress tracking for a new song
     function startNewSongProgress(song: SpotifyTrack, progressMs: number) {
         // Safety check
