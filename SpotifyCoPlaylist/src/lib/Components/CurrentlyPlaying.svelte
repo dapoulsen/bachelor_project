@@ -94,7 +94,11 @@
     }
         
     }
-    async function updateSong() {
+
+    async function updateSong(){
+        
+    }
+    /*async function updateSong() {
         try {
             // Make sure we have a token
             if (!$adminToken) {
@@ -160,7 +164,7 @@
             console.error("Error fetching current track:", error);
         }
     }
-
+*/
     // Start progress tracking for a new song
     function startNewSongProgress(song: SpotifyTrack, progressMs: number) {
         // Safety check

@@ -1,4 +1,5 @@
 import type { SpotifyTrack } from "$lib/types";
+import { error } from "@sveltejs/kit";
 
 export async function getLeaderboard() {
     const res = await fetch("api/leaderboard");
@@ -64,6 +65,55 @@ export async function voteForTrack(trackId: string, action: 'increment' | 'decre
         throw error;
     }
 }
+
+export async function getCurrentSong(token: string): Promise<SpotifyTrack | null> {
+    try {
+        const response = await fetch ('/api/current-song', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+
+            },
+            body: JSON.stringify({ token })
+        });
+
+        if (!response.ok) {
+            console.error('Failed to fetch current song:', response.statusText);
+            return null;
+        }
+        const data = await response.json();
+        return data.currentSong || null;
+
+    } catch (error) {
+        console.error('Error fetching current song:', error);
+        return null;
+    }
+    
+}
+
+export async function setCurrentSong(token: string, song: SpotifyTrack): Promise<SpotifyTrack | null> {
+    try {
+        const response = await fetch('/api/current-song', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ token, song })
+        });
+        if (!response.ok) {
+            console.error('Failed to set current song:', response.statusText);
+            return null;
+        }
+
+        const data = await response.json();
+        return data.success || false;
+        }catch (error) {
+            console.error('Error setting current song:', error);
+            return null;
+        }
+}
+
+
 
 
  // Create a function to set admin token on the server

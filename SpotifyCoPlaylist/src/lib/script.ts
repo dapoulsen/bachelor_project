@@ -2,6 +2,7 @@ import type { UserProfile, SpotifyTopTracksResponse, SpotifyTrack, SpotifySearch
 import Cookies from "js-cookie"; // Install with `npm install js-cookie`
 
 export const clientId = "1aacc1c2967a41b18cb20bfaeefe8ff2";
+let currentSong: SpotifyTrack | null = null;
 /*const code = params.get("code");
 
 if (!code) {
@@ -267,12 +268,15 @@ export async function fetchCurrentTrack(token: string): Promise<{
         
         // If response is directly a track (no item wrapper)
         if (data.id && data.duration_ms) {
+            if (!data.item === currentSong)
+            
             // Create the expected structure
             return {
                 item: data,
                 progress_ms: 0, // Default to start of track
                 is_playing: true // Default to playing
             };
+            
         }
         
         console.error("Unexpected API response format:", data);
@@ -283,6 +287,7 @@ export async function fetchCurrentTrack(token: string): Promise<{
     }
     
 }
+
 
 export async function skipSong(token:string) {
     const response = await fetch(`https://api.spotify.com/v1/me/player/next`, {
