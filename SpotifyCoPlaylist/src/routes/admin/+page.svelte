@@ -142,6 +142,7 @@
         let sessionStatus = await setSessionStatus('active'); // Set the session status to true
         console.log("Session status:", sessionStatus);
         start = await getSessionStatus(); // Get the session status
+        console.log("Session status:", start);
     }
 
     async function stopSession() {
@@ -154,6 +155,7 @@
         let sessionStatus = await setSessionStatus('inactive'); // Set the session status to false
         console.log("Session status:", sessionStatus);
         start = await getSessionStatus(); // Get the session status
+        console.log("Session status:", start);
     }
 
     async function skip() {
@@ -213,7 +215,7 @@
                 Start Session
             </button>
         {:else}
-            <CurrentlyPlaying onPlayStateChange={handlePlayStateChange} />
+            <!-- <CurrentlyPlaying onPlayStateChange={handlePlayStateChange} /> -->
             <div>
                 <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300"
                 onclick={() => skip()}>
