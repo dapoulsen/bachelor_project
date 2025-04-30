@@ -4,7 +4,7 @@
     import { queueSelectedSong } from "$lib/script"
     import { onMount } from "svelte";
     import { getLeaderboard, voteForTrack, removeFromLeaderboard } from "$lib/api";
-    import CurrentlyPlaying from "$lib/Components/CurrentlyPlaying.svelte";
+    import UserCurrentlyPlaying from "$lib/Components/UserCurrentlyPlaying.svelte";
     import { adminToken } from "$lib/adminTokenManager"; // Import the admin token manager
     import { hasVotedForTrack, recordVote, getUserVoteForTrack } from "$lib/voteTracker"; // Add this import
     
@@ -120,7 +120,7 @@
         <p class="text-gray-400">Loading...</p>
     {:else}
 
-    <CurrentlyPlaying />
+    <UserCurrentlyPlaying />
     
     <!-- Buttons -->
     <div class="flex space-x-4 mb-8">
