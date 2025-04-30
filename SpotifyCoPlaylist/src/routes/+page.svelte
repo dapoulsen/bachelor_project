@@ -6,6 +6,7 @@
     import { getLeaderboard, voteForTrack, removeFromLeaderboard } from "$lib/api";
     import CurrentlyPlaying from "$lib/Components/CurrentlyPlaying.svelte";
     import { adminToken } from "$lib/adminTokenManager"; // Import the admin token manager
+    import { hasVotedForTrack, recordVote, getUserVoteForTrack } from "$lib/voteTracker"; // Add this import
     
     interface LeaderboardItem {
         track: SpotifyTrack;
@@ -75,15 +76,28 @@
     }
 
     async function handleVote(track: SpotifyTrack, action: 'increment' | 'decrement') {
-    try {
-        console.log(`Voting ${action} for track ${track.id}`);
-        const result = await voteForTrack(track.id, action);
-        console.log('Vote result:', result);
-        await refreshLeaderboard();
-    } catch (error) {
-        console.error('Error in handleVote:', error);
+        try {
+            // Check if user already voted for this track
+            if (hasVotedForTrack(track.id)) {
+                console.log(`User already voted for track ${track.id}`);
+                return; // Early return if already voted
+            }
+            
+            console.log(`Voting ${action} for track ${track.id}`);
+            const result = await voteForTrack(track.id, action);
+            
+            if (result) {
+                // Only record the vote if the API call was successful
+                recordVote(track.id, action);
+                console.log('Vote recorded locally');
+            }
+            
+            console.log('Vote result:', result);
+            await refreshLeaderboard();
+        } catch (error) {
+            console.error('Error in handleVote:', error);
+        }
     }
-}
         
 
     async function handleSongAdded(track:SpotifyTrack) {
@@ -140,7 +154,7 @@
     {:else}
         <ul class="mt-6 w-full max-w-3xl space-y-4">
             {#each leaderboardState.list as item}
-                <li class="bg-gray-800 p-4 rounded-lg flex items-center space-x-4 shadow-md">
+                <li class="bg-gray-800 p-4 rounded-lg flex items-center space-x-4 shadow-md {hasVotedForTrack(item.track.id) ? 'border border-gray-600' : ''}">
                     <img 
                         src={item.track.album.images[0]?.url} 
                         alt={item.track.album.name} 
@@ -153,23 +167,32 @@
                     <div>
                         <p>Votes: {item.votes}</p>
                         {#if userState.state === 2}
-                        <div class=inline-flex>
-                            <button 
-                                id="vote-button-yes"
-                                class="bg-green-500 hover:bg-green-400 text-white font-bold py-2 px-5 rounded shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-300 space-x-2"
-                                onclick={() => handleVote(item.track, 'increment')}
+                            {@const userVote = getUserVoteForTrack(item.track.id)}
+                            {#if userVote}
+                                <!-- Show what the user voted -->
+                                <p class="text-sm text-gray-400 mb-2">
+                                    You voted: {userVote === 'increment' ? '⬆️ Upvoted' : '⬇️ Downvoted'}
+                                </p>
+                            {/if}
+                            <div class="inline-flex">
+                                <button 
+                                    id="vote-button-yes"
+                                    class="bg-green-500 hover:bg-green-400 text-white font-bold py-2 px-5 rounded shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-300 space-x-2 {userVote ? 'opacity-50 cursor-not-allowed' : ''}"
+                                    onclick={() => handleVote(item.track, 'increment')}
+                                    disabled={!!userVote}
                                 >
                                     ⬆️ <span>Upvote</span>
-                            </button>
-                        
-                            <button 
-                                id="vote-button-no"
-                                class="bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-5 rounded shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-300 space-x-2"
-                                onclick={() => handleVote(item.track, 'decrement')}
+                                </button>
+                            
+                                <button 
+                                    id="vote-button-no"
+                                    class="bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-5 rounded shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-300 space-x-2 {userVote ? 'opacity-50 cursor-not-allowed' : ''}"
+                                    onclick={() => handleVote(item.track, 'decrement')}
+                                    disabled={!!userVote}
                                 >
-                                ⬇️ <span>Downvote</span>
-                            </button>
-                        </div>
+                                    ⬇️ <span>Downvote</span>
+                                </button>
+                            </div>
                         {/if}
                     </div>
                 </li>

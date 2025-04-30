@@ -3,8 +3,7 @@
 ## TODO
 Create AdminToken in API
 Alternatively make fetchSong a global field
-Admin page hidden
-Admin page code access
+
 Only vote once
 
 Make the code use Strategy patterns - making it modular

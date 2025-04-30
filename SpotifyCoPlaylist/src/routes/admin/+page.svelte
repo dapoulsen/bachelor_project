@@ -149,7 +149,7 @@
         } else {
             start = false; // Set start to false if session is inactive
         }
-        console.log("Session status:", start);
+        
     }
 
     async function stopSession() {
@@ -165,7 +165,7 @@
         } else {
             start = true; // Set start to true if session is active
         }
-        console.log("Session status:", start);
+        await togglePlay(false); // Ensure the play state is set to false when ending the session
     }
 
     async function skip() {
