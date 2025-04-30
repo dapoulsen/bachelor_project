@@ -159,3 +159,88 @@ export async function clearServerAdminToken(): Promise<boolean> {
         return false;
     }
 }
+
+export async function getSessionStatus() {
+    try {
+        const response = await fetch('/api/session', {
+            method: 'GET'
+        });
+        
+        if (!response.ok) {
+            console.error('Failed to get session status:', response.statusText);
+            return null;
+        }
+        
+        const data = await response.json();
+        return data.session || null;
+    } catch (error) {
+        console.error('Error getting session status:', error);
+        return null;
+    }
+}
+
+export async function setSessionStatus(session: 'active' | 'inactive') {
+    try {
+        const response = await fetch('/api/session', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ session })
+        });
+        
+        if (!response.ok) {
+            console.error('Failed to set session status:', response.statusText);
+            return null;
+        }
+        
+        const data = await response.json();
+        return data.session || null;
+    } catch (error) {
+        console.error('Error setting session status:', error);
+        return null;
+    }
+}
+
+
+// Add these functions to c:\AU\6_Semester\Bachelor\bachelorproject\SpotifyCoPlaylist\src\lib\api.ts
+
+/**
+ * Verify the admin password with the server
+ */
+export async function verifyAdminPassword(password: string): Promise<boolean> {
+    try {
+        const response = await fetch('/api/admin/verify', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ password })
+        });
+        
+        if (!response.ok) {
+            console.error('Failed to verify password:', response.statusText);
+            return false;
+        }
+        
+        const data = await response.json();
+        return data.success === true;
+    } catch (error) {
+        console.error('Error verifying admin password:', error);
+        return false;
+    }
+}
+
+/**
+ * Check if the user is currently verified as admin
+ */
+export function isAdminVerified(): boolean {
+    return localStorage.getItem('adminPasswordVerified') === 'true';
+}
+
+/**
+ * Clear the admin verification status
+ */
+export function clearAdminVerification(): void {
+    localStorage.removeItem('adminPasswordVerified');
+}

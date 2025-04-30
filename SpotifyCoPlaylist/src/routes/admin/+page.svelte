@@ -2,13 +2,28 @@
     import SpotifyAuth from "$lib/Components/spotifyAuth.svelte";
     import CurrentlyPlaying from "$lib/Components/CurrentlyPlaying.svelte";
     import { onMount } from "svelte";
-    import { initializeLeaderboard, getLeaderboard, resetLeaderboard, setServerAdminToken, clearServerAdminToken } from "$lib/api";
+    import { 
+        initializeLeaderboard, 
+        getLeaderboard, 
+        resetLeaderboard, 
+        setServerAdminToken, 
+        clearServerAdminToken,
+        getSessionStatus,
+        setSessionStatus 
+    } from "$lib/api";
     import { 
         skipSong,
         playOrPause
      } from "$lib/script";
     import Cookies from "js-cookie";
     import { adminToken, refreshToken, debugTokenState, forceSetToken } from "$lib/adminTokenManager"; 
+
+     //Password protection state
+     let passwordVerified = $state(false);
+     let passwordInput = $state("");
+     let passwordError = $state('');
+     let isVerifying = $state(false);
+
 
     let accessToken = Cookies.get("spotify_access_token") || ""; // Retrieve from cookies
 
@@ -23,10 +38,59 @@
     }
 
     onMount(async () => {
+        //Check if password is verified
+        const isVerified = localStorage.getItem("adminPasswordVerified");
+
+        if (isVerified === 'true') {
+            passwordVerified = true;
+        } 
+
+
         const data = await getLeaderboard();
         console.log(data);
         leaderboardState.initialized = data.initialized;
+        start = await getSessionStatus(); // Get the session status
     });
+
+    async function verifyPassword() {
+        if (!passwordInput) {
+            passwordError = "Please enter a password.";
+            return;
+        }
+        isVerifying = true;
+
+        try {
+            const response = await fetch('/api/verify-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ password: passwordInput })
+            });
+            const result = await response.json();
+
+            if (result.success) {
+                passwordVerified = true;
+                localStorage.setItem("adminPasswordVerified", "true"); // Store in local storage
+                passwordError = '';
+            } else {
+                passwordError = "Incorrect password. Please try again.";
+                passwordInput = ""; // Clear the input field
+            }
+        } catch (error) {
+            console.error("Error verifying password:", error);
+            passwordError = "An error occurred. Please try again.";
+        } finally {
+            isVerifying = false;
+        }
+    }
+
+    //When pressing enter in password field
+    function handleKeyDown(event: KeyboardEvent) {
+        if (event.key === 'Enter') {
+            verifyPassword();
+        }
+    }
 
     async function debugAdminToken() {
         console.log("------ Admin Token Debug ------");
@@ -86,7 +150,8 @@
             return;
         }
         console.log("Session started:", $adminToken);
-        start = true;
+        await setSessionStatus('active'); // Set the session status to true
+        start = await getSessionStatus(); // Get the session status
     }
 
     async function stopSession() {
@@ -96,7 +161,8 @@
             leaderboardState.initialized = data.initialized;
             await clearServerAdminToken(); // Clear the admin token when session ends
         }
-        start = false;
+        await setSessionStatus('inactive'); // Set the session status to false
+        start = await getSessionStatus(); // Get the session status
     }
 
     async function skip() {
@@ -115,6 +181,37 @@
     }
 
 </script>
+
+{#if !passwordVerified}
+<div class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-75">
+    <div class="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full text-center">
+        <h2 class="text-2xl font-bold text-white mb-4">Admin Access Required</h2>
+        <p class="text-gray-300 mb-6">Please enter the admin password to continue.</p>
+        
+        <div class="mb-4">
+            <input 
+                type="password"
+                bind:value={passwordInput}
+                onkeydown={handleKeyDown}
+                placeholder="Enter password"
+                class="w-full p-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+        </div>
+        
+        {#if passwordError}
+            <p class="text-red-400 mb-4">{passwordError}</p>
+        {/if}
+        
+        <button 
+            class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            onclick={verifyPassword}
+            disabled={isVerifying}
+        >
+            {isVerifying ? 'Verifying...' : 'Submit'}
+        </button>
+    </div>
+</div>
+{:else}
 
 <SpotifyAuth />
 
@@ -146,3 +243,4 @@
     Debug Admin Token
 </button>
 </main>
+{/if}
