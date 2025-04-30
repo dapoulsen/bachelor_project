@@ -4,29 +4,9 @@
     import { fetchCurrentTrack, queueSelectedSong } from "$lib/script";
     import { Tween } from "svelte/motion";
     import { getLeaderboard, removeFromLeaderboard } from "$lib/api";
-    import { adminToken, refreshToken, debugTokenState } from "$lib/adminTokenManager";
+    import { adminToken, refreshToken } from "$lib/adminTokenManager";
     
-    // Add this debug function
-    async function debugToken() {
-        console.log("------ Token Debug ------");
-        console.log("Current adminToken value from store:", $adminToken ? "✅ Token exists" : "❌ No token");
-        
-        debugTokenState();
-        
-        console.log("Forcing token refresh...");
-        const result = await refreshToken();
-        console.log("Force refresh result:", result ? "✅ Success" : "❌ Failed");
-        
-        // Manual API check
-        try {
-            const response = await fetch('/api/admin-token');
-            const data = await response.json();
-            console.log("Direct API response:", data);
-        } catch (error) {
-            console.error("Error making direct API call:", error);
-        }
-        console.log("------------------------");
-    }
+    
 
     let { onPlayStateChange } = $props<{
         onPlayStateChange?: (is_playing: boolean) => void;
@@ -259,14 +239,7 @@
     <h1 class="text-4xl font-bold mb-6"> No song currently playing </h1>
 {/if}
 
-<div class="mt-4">
-    <button 
-        class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600"
-        onclick={debugToken}
-    >
-        Debug Token
-    </button>
-</div>
+
 
 <style>
     progress {

@@ -150,7 +150,7 @@
         <p class="text-gray-400">Loading...</p>
     {:else}
 
-    <CurrentlyPlaying />
+    <!-- <CurrentlyPlaying /> -->
     
     <!-- Buttons -->
     <div class="flex space-x-4 mb-8">
