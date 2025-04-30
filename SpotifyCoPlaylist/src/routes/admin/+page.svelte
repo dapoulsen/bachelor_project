@@ -48,6 +48,7 @@
         console.log(data);
         leaderboardState.initialized = data.initialized;
         start = await getSessionStatus(); // Get the session status
+        console.log("Session status:", start);
     });
 
     async function verifyPassword() {
@@ -131,14 +132,15 @@
             console.log("Admin token set successfully.");
             forceSetToken(accessToken); // Set the token in the client store
 
-            debugTokenState();
+            //debugTokenState();
 
         } else {
             console.error("Failed to set admin token.");
             return;
         }
         console.log("Session started:", $adminToken);
-        await setSessionStatus('active'); // Set the session status to true
+        let sessionStatus = await setSessionStatus('active'); // Set the session status to true
+        console.log("Session status:", sessionStatus);
         start = await getSessionStatus(); // Get the session status
     }
 
@@ -149,7 +151,8 @@
             leaderboardState.initialized = data.initialized;
             await clearServerAdminToken(); // Clear the admin token when session ends
         }
-        await setSessionStatus('inactive'); // Set the session status to false
+        let sessionStatus = await setSessionStatus('inactive'); // Set the session status to false
+        console.log("Session status:", sessionStatus);
         start = await getSessionStatus(); // Get the session status
     }
 
@@ -171,64 +174,64 @@
 </script>
 
 {#if !passwordVerified}
-<div class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-75">
-    <div class="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full text-center">
-        <h2 class="text-2xl font-bold text-white mb-4">Admin Access Required</h2>
-        <p class="text-gray-300 mb-6">Please enter the admin password to continue.</p>
-        
-        <div class="mb-4">
-            <input 
-                type="password"
-                bind:value={passwordInput}
-                onkeydown={handleKeyDown}
-                placeholder="Enter password"
-                class="w-full p-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
-            />
+    <div class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-75">
+        <div class="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full text-center">
+            <h2 class="text-2xl font-bold text-white mb-4">Admin Access Required</h2>
+            <p class="text-gray-300 mb-6">Please enter the admin password to continue.</p>
+            
+            <div class="mb-4">
+                <input 
+                    type="password"
+                    bind:value={passwordInput}
+                    onkeydown={handleKeyDown}
+                    placeholder="Enter password"
+                    class="w-full p-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+            </div>
+            
+            {#if passwordError}
+                <p class="text-red-400 mb-4">{passwordError}</p>
+            {/if}
+            
+            <button 
+                class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                onclick={verifyPassword}
+                disabled={isVerifying}
+            >
+                {isVerifying ? 'Verifying...' : 'Submit'}
+            </button>
         </div>
-        
-        {#if passwordError}
-            <p class="text-red-400 mb-4">{passwordError}</p>
-        {/if}
-        
-        <button 
-            class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            onclick={verifyPassword}
-            disabled={isVerifying}
-        >
-            {isVerifying ? 'Verifying...' : 'Submit'}
-        </button>
     </div>
-</div>
 {:else}
 
-<SpotifyAuth />
+    <SpotifyAuth />
 
-<main class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 to-black p-8 text-white">
-    {#if !start}
-    <button id="start-button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300"
-     onclick={() => startSession()}>
-        Start Session
-    </button>
-    {:else}
-    <CurrentlyPlaying onPlayStateChange={handlePlayStateChange} />
-    <div>
-        <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300"
-         onclick={() => skip()}>
-            Skip Song
+    <main class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 to-black p-8 text-white">
+        {#if !start}
+            <button id="start-button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300"
+            onclick={() => startSession()}>
+                Start Session
+            </button>
+        {:else}
+            <CurrentlyPlaying onPlayStateChange={handlePlayStateChange} />
+            <div>
+                <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300"
+                onclick={() => skip()}>
+                    Skip Song
+                </button>
+                <button class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300"
+                onclick={() => togglePlay(isPlaying)}>
+                    {isPlaying ? "Pause" : "Play"}
+            </div>
+            <button class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300"
+            onclick={() => stopSession()}>
+                End Session
+            </button>
+        {/if}
+        <button 
+        class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600 mt-4"
+        onclick={debugAdminToken}>
+        Debug Admin Token
         </button>
-        <button class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300"
-         onclick={() => togglePlay(isPlaying)}>
-            {isPlaying ? "Pause" : "Play"}
-    </div>
-    <button class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300"
-     onclick={() => stopSession()}>
-        End Session
-    </button>
-    {/if}
-    <button 
-    class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600 mt-4"
-    onclick={debugAdminToken}>
-    Debug Admin Token
-</button>
-</main>
+    </main>
 {/if}
