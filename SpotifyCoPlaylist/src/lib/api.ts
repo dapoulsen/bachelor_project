@@ -223,6 +223,7 @@ export async function verifyAdminPassword(password: string): Promise<boolean> {
         }
         
         const data = await response.json();
+        localStorage.setItem("adminPasswordVerified", "true"); // Store in local storage
         return data.success === true;
     } catch (error) {
         console.error('Error verifying admin password:', error);

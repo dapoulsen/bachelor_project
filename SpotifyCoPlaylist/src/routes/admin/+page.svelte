@@ -64,7 +64,6 @@
                 return;
             } else {
                 passwordVerified = true;
-                localStorage.setItem("passwordVerified", "true"); // Store in local storage
             }
         } catch (error) {
             passwordError = "Incorrect password. Please try again.";
