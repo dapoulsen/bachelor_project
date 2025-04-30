@@ -12,8 +12,6 @@
         onPlayStateChange?: (is_playing: boolean) => void;
     }>();
 
-    // let accessToken = Cookies.get("spotify_access_token") || ""; // Retrieve from cookies
-
     // State for component
     let currentlyPlaying = $state<SpotifyTrack | null>(null);
     let is_playing = $state(false);
@@ -75,42 +73,35 @@
 
     async function updateSong() {
         try {
-            // Fetch the current song from your own API
-            const response = await fetch('/api/currentSong', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
+            // First check if we have an admin token
+            if (!$adminToken) {
+                console.error('No admin token available. Cannot fetch current song.');
+                return;
+            }
 
-            if (!response.ok) {
-                console.error('Failed to fetch current song from API:', response.statusText);
+            // Fetch the current track directly from Spotify API
+            const spotifyData = await fetchCurrentTrack($adminToken);
+            
+            if (!spotifyData) {
+                console.log('No track currently playing from Spotify API.');
                 stopProgress();
                 currentlyPlaying = null;
                 return;
             }
-
-            const data = await response.json();
-
-            if (!data.currentSong) {
-                console.log('No song currently playing.');
-                stopProgress();
-                currentlyPlaying = null;
-                return;
-            }
-
-            const song = data.currentSong;
-            const progressMs = data.progress_ms || 0;
 
             // Store the previous play state
             const wasPlaying = is_playing;
+            
             // Update the play state
-            is_playing = data.is_playing !== undefined ? data.is_playing : false;
-
+            is_playing = spotifyData.is_playing;
+            
             // Notify parent if play state changed
             if (wasPlaying !== is_playing && onPlayStateChange) {
                 onPlayStateChange(is_playing);
             }
+
+            const song = spotifyData.item;
+            const progressMs = spotifyData.progress_ms;
 
             // Check if it's a new song or first load
             if (!currentlyPlaying || currentlyPlaying.id !== song.id) {
@@ -118,6 +109,23 @@
                 currentlyPlaying = song;
                 startNewSongProgress(song, progressMs);
                 hasAddedSong = false;
+                
+                // Also update our server's current song state
+                try {
+                    await fetch('/api/currentSong', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ 
+                            song,
+                            is_playing,
+                            progress_ms: progressMs
+                        })
+                    });
+                } catch (error) {
+                    console.error('Failed to update server with current song:', error);
+                }
             } else {
                 // Same song, just sync progress
                 syncProgress(progressMs);
@@ -131,7 +139,7 @@
                 startNewSongProgress(song, progressMs);
             }
         } catch (error) {
-            console.error('Error fetching current song from API:', error);
+            console.error('Error fetching current song:', error);
         }
     }
 

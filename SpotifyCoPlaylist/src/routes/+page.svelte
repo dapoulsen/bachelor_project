@@ -24,8 +24,6 @@
         state: 0
     });
 
-    // Add state to prevent multiple simultaneous operations
-    let isQueueingInProgress = false;
 
     async function refreshLeaderboard() {
         if (isRefreshing) return; // Prevent multiple simultaneous refreshes
@@ -59,34 +57,6 @@
         userState.state = newState;
     }
 
-    async function queueSong() {
-        if (isQueueingInProgress || leaderboardState.list.length === 0) {
-            return;
-        }
-        
-        try {
-            isQueueingInProgress = true;
-            
-            if (!$adminToken) {
-                console.error("Admin token is not set. Cannot queue song.");
-                return;
-            }
-
-            let track = leaderboardState.list[0].track;
-            console.log("Queueing song:", track.name);
-            
-            // Get trackId before any async operations
-            const trackId = track.id;
-            
-            await queueSelectedSong(track, $adminToken);
-            await removeFromLeaderboard(trackId);
-            await refreshLeaderboard();
-        } catch (error) {
-            console.error("Error queueing song:", error);
-        } finally {
-            isQueueingInProgress = false;
-        }
-    }
 
     // Add debounce utility
     function debounce<F extends (...args: any[]) => any>(func: F, wait: number): (...args: Parameters<F>) => void {
@@ -150,7 +120,7 @@
         <p class="text-gray-400">Loading...</p>
     {:else}
 
-    <!-- <CurrentlyPlaying /> -->
+    <CurrentlyPlaying />
     
     <!-- Buttons -->
     <div class="flex space-x-4 mb-8">
@@ -175,9 +145,7 @@
 
     <!-- Leaderboard -->
     <h2 class="text-2xl font-semibold mt-8">Leaderboard</h2>
-    <!-- <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300" 
-        onclick={queueSong}>ADD SONG TO QUEUE
-    </button> -->
+    
     {#if leaderboardState.list.length === 0}
         <p class="text-gray-400 mt-4">No songs in leaderboard</p>
     {:else}

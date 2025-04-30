@@ -11,7 +11,9 @@
         getSessionStatus,
         setSessionStatus,
         isAdminVerified,
-        verifyAdminPassword 
+        verifyAdminPassword,
+        getCurrentSong,
+        setCurrentSong 
     } from "$lib/api";
     import { 
         skipSong,
