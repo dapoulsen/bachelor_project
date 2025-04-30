@@ -18,23 +18,29 @@
         initialized: false
     });
 
-    // let accessToken = Cookies.get("spotify_access_token") || ""; // Retrieve from cookies
-    
+    let isRefreshing = false;
 
     let userState = $state({
         state: 0
     });
 
+    // Add state to prevent multiple simultaneous operations
+    let isQueueingInProgress = false;
+
     async function refreshLeaderboard() {
+        if (isRefreshing) return; // Prevent multiple simultaneous refreshes
+        
         try {
+            isRefreshing = true;
             const data = await getLeaderboard();
             console.log("Refreshed leaderboard data:", data);
             leaderboardState = data;
         } catch (error) {
             console.error("Error refreshing leaderboard:", error);
+        } finally {
+            isRefreshing = false;
         }
     }
-
 
     onMount(() => {
         let interval: ReturnType<typeof setInterval>;
@@ -54,49 +60,72 @@
     }
 
     async function queueSong() {
-        if (leaderboardState.list.length > 0) { // FIXED: Check if list is NOT empty
-            try {
-
-                if (!$adminToken) {
-                    console.error("Admin token is not set. Cannot queue song.");
-                    return;
-                }
-
-                let track = leaderboardState.list[0].track;
-                console.log("Queueing song:", track.name);
-                await queueSelectedSong(track, $adminToken);
-                await removeFromLeaderboard(track.id);
-                await refreshLeaderboard();
-            } catch (error) {
-                console.error("Error queueing song:", error);
+        if (isQueueingInProgress || leaderboardState.list.length === 0) {
+            return;
+        }
+        
+        try {
+            isQueueingInProgress = true;
+            
+            if (!$adminToken) {
+                console.error("Admin token is not set. Cannot queue song.");
+                return;
             }
-        } else {
-            console.log("No songs in leaderboard to queue");
+
+            let track = leaderboardState.list[0].track;
+            console.log("Queueing song:", track.name);
+            
+            // Get trackId before any async operations
+            const trackId = track.id;
+            
+            await queueSelectedSong(track, $adminToken);
+            await removeFromLeaderboard(trackId);
+            await refreshLeaderboard();
+        } catch (error) {
+            console.error("Error queueing song:", error);
+        } finally {
+            isQueueingInProgress = false;
         }
     }
 
-    async function handleVote(track: SpotifyTrack, action: 'increment' | 'decrement') {
+    // Add debounce utility
+    function debounce<F extends (...args: any[]) => any>(func: F, wait: number): (...args: Parameters<F>) => void {
+        let timeout: ReturnType<typeof setTimeout> | null = null;
+        
+        return (...args: Parameters<F>) => {
+            if (timeout) clearTimeout(timeout);
+            timeout = setTimeout(() => func(...args), wait);
+        };
+    }
+    
+    // Create debounced version of handleVote
+    const debouncedVote = debounce(async (track: SpotifyTrack, action: 'increment' | 'decrement') => {
         try {
             // Check if user already voted for this track
             if (hasVotedForTrack(track.id)) {
                 console.log(`User already voted for track ${track.id}`);
-                return; // Early return if already voted
+                return;
             }
+            
+            // Optimistically update UI
+            const tempId = `voting-${track.id}-${Date.now()}`;
             
             console.log(`Voting ${action} for track ${track.id}`);
             const result = await voteForTrack(track.id, action);
             
             if (result) {
-                // Only record the vote if the API call was successful
                 recordVote(track.id, action);
                 console.log('Vote recorded locally');
+                await refreshLeaderboard();
             }
-            
-            console.log('Vote result:', result);
-            await refreshLeaderboard();
         } catch (error) {
             console.error('Error in handleVote:', error);
         }
+    }, 300); // 300ms debounce
+    
+    // Use the debounced function in your component
+    async function handleVote(track: SpotifyTrack, action: 'increment' | 'decrement') {
+        debouncedVote(track, action);
     }
         
 

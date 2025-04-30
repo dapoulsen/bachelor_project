@@ -85,43 +85,7 @@
         }
     }
 
-    async function debugAdminToken() {
-        console.log("------ Admin Token Debug ------");
-        console.log("Current token from store:", $adminToken ? "✅ Token exists" : "❌ No token");
-        debugTokenState();
-        
-        try {
-            console.log("Making direct API call...");
-            const response = await fetch('/api/admin-token');
-            const data = await response.json();
-            console.log("API response:", data);
-            
-            // Try to set token directly
-            console.log("Setting token again...");
-            const setResponse = await fetch('/api/admin-token', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ token: accessToken })
-            });
-            console.log("Set token response:", await setResponse.json());
-            const setData = await setResponse.json();
-
-            // CRITICAL FIX: Force-set the token here too for debugging
-            if (setData.success && accessToken) {
-                forceSetToken(accessToken);
-                console.log("Token force-set in debug function");
-            }
-            
-            // Refresh the token in the client
-            await refreshToken();
-            console.log("Token after refresh:", $adminToken ? "✅ Token exists" : "❌ No token");
-        } catch (error) {
-            console.error("Error in debug function:", error);
-        }
-        console.log("----------------------------");
-    }
+    
 
     async function startSession(){
         if (!leaderboardState.initialized) {
@@ -240,10 +204,6 @@
                 End Session
             </button>
         {/if}
-        <button 
-        class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600 mt-4"
-        onclick={debugAdminToken}>
-        Debug Admin Token
-        </button>
+        
     </main>
 {/if}

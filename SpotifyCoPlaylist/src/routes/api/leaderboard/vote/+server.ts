@@ -6,19 +6,18 @@ export const POST: RequestHandler = async ({ request }) => {
     try {
         const { id, action } = await request.json();
         
-        
-        
+        let result;
         if (action === 'increment') {
-            leaderboardState.incrementVotes(id);
-            console.log('I am Incrementing');
+            result = await leaderboardState.incrementVotes(id);
         } else if (action === 'decrement') {
-            leaderboardState.decrementVotes(id);
+            result = await leaderboardState.decrementVotes(id);
         } else {
             return new Response('Invalid action', { status: 400 });
         }
         
-        leaderboardState.sortLeaderboard(); // Re-sort after voting
-        return json(leaderboardState.getStatus());
+        // Now sort after the vote operation is complete
+        await leaderboardState.sortLeaderboard();
+        return json(result);
     } catch (error) {
         console.error('Error in vote endpoint:', error);
         return new Response('Server error', { status: 500 });

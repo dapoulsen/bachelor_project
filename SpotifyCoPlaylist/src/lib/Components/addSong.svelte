@@ -57,6 +57,7 @@
         <input 
             bind:value={songSearch.search}
             type="text"
+            onkeydown="{(e) => e.key === 'Enter' && searchSongs()}"
             placeholder="Search for a song..."
             class="w-full p-3 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
         />
