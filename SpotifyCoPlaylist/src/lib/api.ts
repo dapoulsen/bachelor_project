@@ -203,7 +203,6 @@ export async function setSessionStatus(session: 'active' | 'inactive') {
 }
 
 
-// Add these functions to c:\AU\6_Semester\Bachelor\bachelorproject\SpotifyCoPlaylist\src\lib\api.ts
 
 /**
  * Verify the admin password with the server

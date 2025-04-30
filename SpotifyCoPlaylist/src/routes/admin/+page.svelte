@@ -9,7 +9,9 @@
         setServerAdminToken, 
         clearServerAdminToken,
         getSessionStatus,
-        setSessionStatus 
+        setSessionStatus,
+        isAdminVerified,
+        verifyAdminPassword 
     } from "$lib/api";
     import { 
         skipSong,
@@ -60,26 +62,16 @@
         isVerifying = true;
 
         try {
-            const response = await fetch('/api/verify-password', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ password: passwordInput })
-            });
-            const result = await response.json();
-
-            if (result.success) {
-                passwordVerified = true;
-                localStorage.setItem("adminPasswordVerified", "true"); // Store in local storage
-                passwordError = '';
-            } else {
+            let success = await verifyAdminPassword(passwordInput);
+            if (!success) {
                 passwordError = "Incorrect password. Please try again.";
-                passwordInput = ""; // Clear the input field
+                return;
+            } else {
+                passwordVerified = true;
             }
         } catch (error) {
-            console.error("Error verifying password:", error);
-            passwordError = "An error occurred. Please try again.";
+            passwordError = "Incorrect password. Please try again.";
+            console.error("Password verification failed:", error);
         } finally {
             isVerifying = false;
         }
