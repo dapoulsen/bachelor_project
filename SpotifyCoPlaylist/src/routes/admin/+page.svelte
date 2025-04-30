@@ -41,12 +41,8 @@
 
     onMount(async () => {
         //Check if password is verified
-        const isVerified = localStorage.getItem("adminPasswordVerified");
-
-        if (isVerified === 'true') {
-            passwordVerified = true;
-        } 
-
+        passwordVerified = await isAdminVerified();
+        console.log("Password verified:", passwordVerified);
 
         const data = await getLeaderboard();
         console.log(data);
@@ -68,6 +64,7 @@
                 return;
             } else {
                 passwordVerified = true;
+                localStorage.setItem("passwordVerified", "true"); // Store in local storage
             }
         } catch (error) {
             passwordError = "Incorrect password. Please try again.";
