@@ -175,9 +175,9 @@
 
     <!-- Leaderboard -->
     <h2 class="text-2xl font-semibold mt-8">Leaderboard</h2>
-    <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300" 
+    <!-- <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300" 
         onclick={queueSong}>ADD SONG TO QUEUE
-    </button>
+    </button> -->
     {#if leaderboardState.list.length === 0}
         <p class="text-gray-400 mt-4">No songs in leaderboard</p>
     {:else}
