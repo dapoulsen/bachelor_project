@@ -33,6 +33,8 @@
         }
 
         searchResults = await searchForSong($adminToken, songSearch.search);
+        console.log("Search results:", searchResults);
+
     }
 
     async function addSongToLeaderboard(track: SpotifyTrack) {
