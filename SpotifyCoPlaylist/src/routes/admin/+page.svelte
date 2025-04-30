@@ -47,8 +47,12 @@
         const data = await getLeaderboard();
         console.log(data);
         leaderboardState.initialized = data.initialized;
-        start = await getSessionStatus(); // Get the session status
-        console.log("Session status:", start);
+        let sessionStatus = await getSessionStatus(); // Get the session status
+        if (sessionStatus === 'active') {
+            start = true; // Set start to true if session is active
+        } else {
+            start = false; // Set start to false if session is inactive
+        }
     });
 
     async function verifyPassword() {
@@ -140,8 +144,11 @@
         }
         console.log("Session started:", $adminToken);
         let sessionStatus = await setSessionStatus('active'); // Set the session status to true
-        console.log("Session status:", sessionStatus);
-        start = await getSessionStatus(); // Get the session status
+        if (sessionStatus === 'active') {
+            start = true; // Set start to true if session is active
+        } else {
+            start = false; // Set start to false if session is inactive
+        }
         console.log("Session status:", start);
     }
 
@@ -153,8 +160,11 @@
             await clearServerAdminToken(); // Clear the admin token when session ends
         }
         let sessionStatus = await setSessionStatus('inactive'); // Set the session status to false
-        console.log("Session status:", sessionStatus);
-        start = await getSessionStatus(); // Get the session status
+        if (sessionStatus === 'inactive') {
+            start = false; // Set start to false if session is inactive
+        } else {
+            start = true; // Set start to true if session is active
+        }
         console.log("Session status:", start);
     }
 
