@@ -96,7 +96,7 @@
     async function updateSong() {
         try {
             // Fetch the current song from your own API
-            const response = await fetch('/api/current-song', {
+            const response = await fetch('/api/currentSong', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'

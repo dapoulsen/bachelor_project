@@ -3,9 +3,7 @@
         searchForSong
     } from "$lib/script"
     import type { SpotifySearchResponse, SpotifyTrack } from '$lib/types';
-    import Cookies from "js-cookie";
-    import { addToLeaderboard } from "$lib/api"
-    import { leaderboardState } from "$lib/Server/leaderboard";
+    import { addToLeaderboard } from "$lib/api";
     import { adminToken } from "$lib/adminTokenManager";
 
     let  { onSongAdded } = $props<{

@@ -4,15 +4,15 @@
 	let { children } = $props();
 </script>
 
-<nav>
+<!-- <nav>
 	<a href="/">User</a>
 	<a href="/admin">Admin</a>
-</nav>
+</nav> -->
 
 {@render children()}
 
 <style>
-	nav {
+	/* nav {
 		background-color: #333;
 		color: white;
 		padding: 1rem;
@@ -22,5 +22,5 @@
 		color: white;
 		text-decoration: none;
 		margin-right: 1rem;
-	}
+	} */
 </style>

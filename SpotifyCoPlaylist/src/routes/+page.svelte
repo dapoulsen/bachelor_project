@@ -1,6 +1,6 @@
 <script lang="ts">
     import AddSong from "$lib/Components/addSong.svelte";
-    import type { SpotifyTrack } from "$lib/types.js";
+    import type { SpotifyTrack } from "$lib/types";
     import { queueSelectedSong } from "$lib/script"
     import { onMount } from "svelte";
     import { getLeaderboard, voteForTrack, removeFromLeaderboard } from "$lib/api";

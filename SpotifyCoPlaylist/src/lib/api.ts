@@ -68,7 +68,7 @@ export async function voteForTrack(trackId: string, action: 'increment' | 'decre
 
 export async function getCurrentSong(token: string): Promise<SpotifyTrack | null> {
     try {
-        const response = await fetch ('/api/current-song', {
+        const response = await fetch ('/api/currentSong', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -93,7 +93,7 @@ export async function getCurrentSong(token: string): Promise<SpotifyTrack | null
 
 export async function setCurrentSong(token: string, song: SpotifyTrack): Promise<SpotifyTrack | null> {
     try {
-        const response = await fetch('/api/current-song', {
+        const response = await fetch('/api/currentSong', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
