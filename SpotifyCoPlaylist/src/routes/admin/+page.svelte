@@ -6,7 +6,7 @@
         initializeLeaderboard, 
         getLeaderboard, 
         resetLeaderboard, 
-        setServerAdminToken, 
+        setAdminToken, 
         clearServerAdminToken,
         getSessionStatus,
         setSessionStatus,
@@ -18,7 +18,7 @@
         playOrPause
      } from "$lib/script";
     import Cookies from "js-cookie";
-    import { adminToken, forceSetToken } from "$lib/adminTokenManager"; 
+    import { adminToken } from "$lib/adminTokenManager"; 
 
      //Password protection state
      let passwordVerified = $state(false);
@@ -41,7 +41,7 @@
 
     onMount(async () => {
         //Check if password is verified
-        passwordVerified = await isAdminVerified();
+        passwordVerified = isAdminVerified();
         console.log("Password verified:", passwordVerified);
 
         const data = await getLeaderboard();
@@ -91,29 +91,26 @@
         if (!leaderboardState.initialized) {
             const data = await initializeLeaderboard();
             leaderboardState.initialized = data.initialized;
-            // Set the admin token when session starts
-            
         }
-        const success = await setServerAdminToken(accessToken);
-        console.log(success);
+        
+        // Use the simplified function that handles both server and client
+        const success = await setAdminToken(accessToken);
+        
         if (success) {
-            console.log("Admin token set successfully.");
-            forceSetToken(accessToken); // Set the token in the client store
-
-            //debugTokenState();
-
+            console.log("Admin token set successfully on server and client");
+            // No need to call forceSetToken separately - it's handled in setAdminToken
         } else {
             console.error("Failed to set admin token.");
             return;
         }
-        console.log("Session started:", $adminToken);
-        let sessionStatus = await setSessionStatus('active'); // Set the session status to true
-        if (sessionStatus === 'active') {
-            start = true; // Set start to true if session is active
-        } else {
-            start = false; // Set start to false if session is inactive
-        }
         
+        console.log("Session started, token:", $adminToken);
+        let sessionStatus = await setSessionStatus('active');
+        if (sessionStatus === 'active') {
+            start = true;
+        } else {
+            start = false;
+        }
     }
 
     async function stopSession() {

@@ -1,5 +1,6 @@
 import type { SpotifyTrack } from "$lib/types";
 import { error } from "@sveltejs/kit";
+import { forceSetToken } from "./adminTokenManager";
 
 export async function getLeaderboard() {
     const res = await fetch("api/leaderboard");
@@ -113,12 +114,29 @@ export async function setCurrentSong(token: string, song: SpotifyTrack): Promise
         }
 }
 
-
-
-
- // Create a function to set admin token on the server
- export async function setServerAdminToken(token: string): Promise<boolean> {
+export async function getServerAdminToken() {
     try {
+        const response = await fetch('/api/admin-token', {
+            method: 'GET'
+        });
+        
+        if (!response.ok) {
+            console.error('Failed to get admin token:', response.statusText);
+            return null;
+        }
+        
+        const data = await response.json();
+        return data.token || null;
+    } catch (error) {
+        console.error('Error getting admin token:', error);
+        return null;
+    }
+}
+
+// Create a function to set admin token on the server and client
+export async function setAdminToken(token: string): Promise<boolean> {
+    try {
+        // First update server
         const response = await fetch('/api/admin-token', {
             method: 'POST',
             headers: {
@@ -128,16 +146,24 @@ export async function setCurrentSong(token: string, song: SpotifyTrack): Promise
         });
         
         if (!response.ok) {
-            console.error('Failed to set admin token:', response.statusText);
+            console.error('Failed to set admin token on server:', response.statusText);
             return false;
         }
         
-        const data = await response.json();
-        return data.success || false;
+        // Then update client immediately
+        forceSetToken(token);
+        
+        console.log('Admin token set on both server and client');
+        return true;
     } catch (error) {
         console.error('Error setting admin token:', error);
         return false;
     }
+}
+
+// Keep the original functions but update setServerAdminToken to use the new combined function
+export async function setServerAdminToken(token: string): Promise<boolean> {
+    return setAdminToken(token);
 }
 
 // Create a function to clear the token on the server

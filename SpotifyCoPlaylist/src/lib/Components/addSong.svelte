@@ -3,8 +3,9 @@
         searchForSong
     } from "$lib/script"
     import type { SpotifySearchResponse, SpotifyTrack } from '$lib/types';
-    import { addToLeaderboard } from "$lib/api";
-    import { adminToken } from "$lib/adminTokenManager";
+    import { addToLeaderboard, getServerAdminToken } from "$lib/api";
+    import { get } from "svelte/store";
+    // import { adminToken } from "$lib/adminTokenManager";
 
     let  { onSongAdded } = $props<{
         onSongAdded?: (track: SpotifyTrack) => void
@@ -27,12 +28,12 @@
     }
 
     async function searchSongs() {
-        if (!$adminToken) {
+        if (!await getServerAdminToken()) {
             console.error("Admin token is not set. Cannot search for songs.");
             return;
         }
 
-        searchResults = await searchForSong($adminToken, songSearch.search);
+        searchResults = await searchForSong(await getServerAdminToken(), songSearch.search);
         console.log("Search results:", searchResults);
 
     }

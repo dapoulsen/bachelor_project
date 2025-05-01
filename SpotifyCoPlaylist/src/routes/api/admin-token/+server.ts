@@ -32,8 +32,20 @@ export const POST: RequestHandler = async ({ request }) => {
             });
         }
         
-        console.log('POST admin-token: Setting token:', data.token.substring(0, 5) + '...');
-        setAdminToken(data.token);
+        // Ensure we're dealing with a string token
+        const tokenStr = typeof data.token === 'string' ? data.token : 
+            (data.token && data.token.access_token ? data.token.access_token : '');
+            
+        if (!tokenStr) {
+            console.error('POST admin-token: Invalid token format');
+            return json({
+                success: false,
+                message: 'Invalid token format'
+            });
+        }
+        
+        console.log('POST admin-token: Setting token:', tokenStr.substring(0, 5) + '...');
+        setAdminToken(tokenStr);
         
         // Return the current token to confirm it was set
         return json({ 
