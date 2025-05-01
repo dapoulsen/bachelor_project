@@ -1,4 +1,4 @@
-import { readable, derived } from 'svelte/store';
+import { readable, derived, writable } from 'svelte/store';
 
 // Internal state
 let currentToken = '';
@@ -7,10 +7,17 @@ let refreshInterval: ReturnType<typeof setInterval> | null = null;
 let isInitialized = false;
 let refreshPromise: Promise<void> | null = null;
 
+// Add a ready state to track when the token is fully loaded
+export const tokenReady = writable(false);
+
 // Create a readable store for the token
 export const adminToken = readable('', (set) => {
     // Add this subscriber to our list
-    const updateToken = (token: string) => set(token);
+    const updateToken = (token: string) => {
+        set(token);
+        // Set the token as ready when it's been successfully fetched
+        tokenReady.set(true);
+    };
     subscribers.push(updateToken);
     
     // Initialize if this is the first subscriber
@@ -132,6 +139,9 @@ export function forceSetToken(token: string | any): void {
     
     console.log('Force setting token to:', tokenStr.substring(0, 5) + '...');
     currentToken = tokenStr;
+    
+    // Mark the token as ready immediately when manually set
+    tokenReady.set(true);
     subscribers.forEach(notify => notify(tokenStr));
 }
 

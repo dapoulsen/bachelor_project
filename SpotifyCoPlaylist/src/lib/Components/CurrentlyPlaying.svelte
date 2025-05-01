@@ -4,7 +4,7 @@
     import { fetchCurrentTrack, queueSelectedSong } from "$lib/script";
     import { Tween } from "svelte/motion";
     import { getLeaderboard, removeFromLeaderboard } from "$lib/api";
-    import { adminToken, refreshToken } from "$lib/adminTokenManager";
+    import { adminToken, refreshToken, tokenReady } from "$lib/adminTokenManager";
     
     
 
@@ -209,13 +209,31 @@
     onMount(async () => {
         console.log("CurrentlyPlaying component mounting, checking for token...");
         console.log("Initial token state:", $adminToken ? "Token exists" : "No token");
+        
+        // If no token, first try to refresh it
         if (!$adminToken) {
             console.log("No token on mount, attempting refresh...");
             const hasToken = await refreshToken();
             console.log("Initial token refresh result:", hasToken ? "✅ Success" : "❌ Failed");
         }
-        updateSong();
-        syncInterval = setInterval(updateSong, 10000)
+        
+        // Wait until token is available or a timeout occurs
+        let attempts = 0;
+        const maxAttempts = 10; // Maximum number of attempts (5 seconds total)
+        
+        while (!$adminToken && attempts < maxAttempts) {
+            console.log(`Waiting for token (attempt ${attempts + 1}/${maxAttempts})...`);
+            await new Promise(resolve => setTimeout(resolve, 500)); // Wait 500ms between checks
+            attempts++;
+        }
+        
+        if ($adminToken) {
+            console.log("Token available, initializing component");
+            updateSong();
+            syncInterval = setInterval(updateSong, 10000);
+        } else {
+            console.error("Failed to get token after multiple attempts");
+        }
     });
 
     onDestroy(() => {
@@ -229,7 +247,7 @@
 
 <h1 class="font-bold">Current Track:</h1>
 
-{#if currentlyPlaying }
+{#if $tokenReady && currentlyPlaying}
     <div class="flex items-center bg-gray-800 p-4 rounded-lg shadow-lg">
         <img src="{currentlyPlaying.album.images[0].url}" alt="Album cover" class="w-16 h-16 rounded-lg">
         <div class="ml-4">
@@ -243,6 +261,8 @@
             </div>
         </div>
     </div>
+{:else if !$tokenReady}
+    <h1 class="text-4xl font-bold mb-6"> Loading player... </h1>
 {:else}
     <h1 class="text-4xl font-bold mb-6"> No song currently playing </h1>
 {/if}

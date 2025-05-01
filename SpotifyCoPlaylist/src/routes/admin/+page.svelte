@@ -18,7 +18,7 @@
         playOrPause
      } from "$lib/script";
     import Cookies from "js-cookie";
-    import { adminToken } from "$lib/adminTokenManager"; 
+    import { adminToken, tokenReady } from "$lib/adminTokenManager"; 
 
      //Password protection state
      let passwordVerified = $state(false);
@@ -100,12 +100,15 @@
         if (success) {
             console.log("Admin token set successfully on server and client");
             // No need to call forceSetToken separately - it's handled in setAdminToken
+            
+            // Wait for next tick to ensure reactivity completes
+            await new Promise(resolve => setTimeout(resolve, 0));
+            console.log("Token after setting:", $adminToken);
         } else {
             console.error("Failed to set admin token.");
             return;
         }
         
-        console.log("Session started, token:", $adminToken);
         let sessionStatus = await setSessionStatus('active');
         if (sessionStatus === 'active') {
             start = true;
@@ -187,7 +190,11 @@
                 Start Session
             </button>
         {:else}
-            <CurrentlyPlaying onPlayStateChange={handlePlayStateChange} />
+            {#if $tokenReady}
+                <CurrentlyPlaying onPlayStateChange={handlePlayStateChange} />
+            {:else}
+                <p>Loading player...</p>
+            {/if}
             <div>
                 <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300"
                 onclick={() => skip()}>
@@ -196,6 +203,7 @@
                 <button class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300"
                 onclick={() => togglePlay(isPlaying)}>
                     {isPlaying ? "Pause" : "Play"}
+                </button>
             </div>
             <button class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300"
             onclick={() => stopSession()}>

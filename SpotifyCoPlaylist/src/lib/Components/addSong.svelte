@@ -4,22 +4,41 @@
     } from "$lib/script"
     import type { SpotifySearchResponse, SpotifyTrack } from '$lib/types';
     import { addToLeaderboard, getServerAdminToken } from "$lib/api";
-    import { get } from "svelte/store";
-    // import { adminToken } from "$lib/adminTokenManager";
+    import { adminToken, refreshToken, tokenReady } from "$lib/adminTokenManager";
+    import { onMount } from "svelte";
 
-    let  { onSongAdded } = $props<{
+    let { onSongAdded } = $props<{
         onSongAdded?: (track: SpotifyTrack) => void
     }>();
 
-    // let accessToken = Cookies.get("spotify_access_token") || ""; // Retrieve from cookies
     let searchResults = $state<SpotifySearchResponse | null>(null);
+    let isSearching = $state(false);
+    let searchError = $state<string | null>(null);
 
     let songSearch = $state({
         search: ""
     });
 
+    // Ensure we have a token when component mounts
+    onMount(async () => {
+        // If token isn't ready, show a message and try to refresh
+        if (!$adminToken) {
+            console.log("AddSong: No token on mount, attempting refresh...");
+            await refreshToken();
+            
+            // Wait for the token to be ready or timeout after a few tries
+            let attempts = 0;
+            const maxAttempts = 10;
+            
+            while (!$adminToken && attempts < maxAttempts) {
+                console.log(`AddSong: Waiting for token (attempt ${attempts + 1}/${maxAttempts})...`);
+                await new Promise(resolve => setTimeout(resolve, 500));
+                attempts++;
+            }
+        }
+    });
+
     function closeSearch() {
-        // hide close button
         const closeButton = document.getElementById("close_search");
         if (closeButton) {
             closeButton.style.display = "none";
@@ -28,14 +47,31 @@
     }
 
     async function searchSongs() {
-        if (!await getServerAdminToken()) {
-            console.error("Admin token is not set. Cannot search for songs.");
-            return;
+        searchError = null;
+        isSearching = true;
+        
+        try {
+            // If store token is not available, try to get it directly from server
+            let token = $adminToken;
+            if (!token) {
+                console.log("AddSong: Store token not available, fetching from server directly");
+                token = await getServerAdminToken();
+                
+                if (!token) {
+                    searchError = "Cannot access Spotify API. Please try again later.";
+                    console.error("AddSong: Unable to get admin token from any source");
+                    return;
+                }
+            }
+
+            searchResults = await searchForSong(token, songSearch.search);
+            console.log("Search results:", searchResults);
+        } catch (error) {
+            console.error("Error searching for songs:", error);
+            searchError = "Failed to search. Please try again.";
+        } finally {
+            isSearching = false;
         }
-
-        searchResults = await searchForSong(await getServerAdminToken(), songSearch.search);
-        console.log("Search results:", searchResults);
-
     }
 
     async function addSongToLeaderboard(track: SpotifyTrack) {
@@ -44,12 +80,13 @@
             onSongAdded(track);
         }
     }
-    
 </script>
 
-
-
 <div class="max-w-3xl mx-auto p-6 bg-gray-900 text-white rounded-lg shadow-lg">
+    {#if !$tokenReady}
+        <p class="text-yellow-500 mb-4">Loading Spotify connection...</p>
+    {/if}
+    
     <!-- Title -->
     <h1 class="text-3xl font-bold mb-6 text-center">Add Song</h1>
 
@@ -65,16 +102,22 @@
         <button 
             class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105"
             onclick={searchSongs}
+            disabled={isSearching}
         >
-            🔍 Search
+            {isSearching ? 'Searching...' : '🔍 Search'}
         </button>
     </div>
+
+    {#if searchError}
+        <p class="text-red-400 mb-4">{searchError}</p>
+    {/if}
 
     <p class="text-gray-400 text-sm mb-4">Searching for: <span class="text-green-400">{songSearch.search}</span></p>
 
     <!-- Close Button -->
     {#if searchResults}
         <button 
+            id="close_search"
             class="bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-transform transform hover:scale-105"
             onclick={closeSearch}
         >
