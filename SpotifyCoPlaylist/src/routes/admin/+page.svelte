@@ -100,7 +100,7 @@
         console.log(success);
         if (success) {
             console.log("Admin token set successfully.");
-            //forceSetToken(accessToken); // Set the token in the client store
+            forceSetToken(accessToken); // Set the token in the client store
 
             //debugTokenState();
 
