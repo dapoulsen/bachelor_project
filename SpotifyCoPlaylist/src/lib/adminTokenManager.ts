@@ -65,45 +65,37 @@ async function refreshAdminToken(): Promise<void> {
     refreshPromise = (async () => {
         try {
             console.log('Refreshing admin token...');
-            const response = await getServerAdminToken();
-            if (!response.ok) {
-                console.warn('Failed to get admin token:', response.statusText);
+            const tokenValue = await getServerAdminToken();
+            
+            // Handle direct token value instead of Response
+            if (tokenValue === null) {
+                console.warn('Failed to get admin token: null returned');
                 return;
             }
             
-            const data = await response.json();
-
-            console.log('DATA FROM API:', data);
+            // Ensure we're handling a string token
+            const tokenStr = typeof tokenValue === 'string' ? tokenValue : 
+                (tokenValue && tokenValue.access_token ? tokenValue.access_token : '');
             
-            if (data && data.token) {
-                // Ensure we're handling a string token
-                const tokenStr = typeof data.token === 'string' ? data.token : 
-                    (data.token && data.token.access_token ? data.token.access_token : '');
+            if (!tokenStr) {
+                console.warn('Invalid token format received');
+                return;
+            }
+            
+            if (tokenStr !== currentToken) {
+                console.log('Token changed, updating from: ',
+                    currentToken ? currentToken.substring(0, 5) + '...' : 'none',
+                    ' to: ', tokenStr.substring(0, 5) + '...');
                 
-                if (!tokenStr) {
-                    console.warn('Invalid token format received');
-                    return;
-                }
+                currentToken = tokenStr;
                 
-                if (tokenStr !== currentToken) {
-                    console.log('Token changed, updating from: ',
-                        currentToken ? currentToken.substring(0, 5) + '...' : 'none',
-                        ' to: ', tokenStr.substring(0, 5) + '...');
-                    
-                    currentToken = tokenStr;
+                // Mark token as ready
+                tokenReady.set(true);
 
-                    // Notify all subscribers of the new token
-                    subscribers.forEach(notify => notify(currentToken));
-                } else {
-                    console.log('Token unchanged');
-                }
+                // Notify all subscribers of the new token
+                subscribers.forEach(notify => notify(currentToken));
             } else {
-                console.warn('No token found in API response:', data);
-                if (currentToken) {
-                    currentToken = '';
-                    subscribers.forEach(notify => notify(''));
-                    console.log('Token cleared due to empty response');
-                }
+                console.log('Token unchanged');
             }
         } catch (error) {
             console.error('Error refreshing admin token:', error);
