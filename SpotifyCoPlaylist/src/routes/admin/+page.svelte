@@ -12,15 +12,13 @@
         setSessionStatus,
         isAdminVerified,
         verifyAdminPassword,
-        getCurrentSong,
-        setCurrentSong 
     } from "$lib/api";
     import { 
         skipSong,
         playOrPause
      } from "$lib/script";
     import Cookies from "js-cookie";
-    import { adminToken, refreshToken, debugTokenState, forceSetToken } from "$lib/adminTokenManager"; 
+    import { adminToken, forceSetToken } from "$lib/adminTokenManager"; 
 
      //Password protection state
      let passwordVerified = $state(false);

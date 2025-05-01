@@ -1,12 +1,12 @@
 <script lang="ts">
     import AddSong from "$lib/Components/addSong.svelte";
     import type { SpotifyTrack } from "$lib/types";
-    import { queueSelectedSong } from "$lib/script"
     import { onMount } from "svelte";
-    import { getLeaderboard, voteForTrack, removeFromLeaderboard } from "$lib/api";
+    import { getLeaderboard, voteForTrack, getSessionStatus } from "$lib/api";
     import UserCurrentlyPlaying from "$lib/Components/UserCurrentlyPlaying.svelte";
     import { adminToken } from "$lib/adminTokenManager"; // Import the admin token manager
     import { hasVotedForTrack, recordVote, getUserVoteForTrack } from "$lib/voteTracker"; // Add this import
+    
     
     interface LeaderboardItem {
         track: SpotifyTrack;
@@ -22,6 +22,10 @@
 
     let userState = $state({
         state: 0
+    });
+
+    let sessionStatus = $state({
+        isActive: false
     });
 
 
@@ -40,12 +44,27 @@
         }
     }
 
+    const updateSessionStatus = async (): Promise<void> => {
+        try {
+            const status = await getSessionStatus();
+            sessionStatus.isActive = status;
+        } catch (error) {
+            console.error("Error fetching session status:", error);
+        }
+    };
+
     onMount(() => {
         let interval: ReturnType<typeof setInterval>;
 
         refreshLeaderboard();
+        
+        updateSessionStatus();
 
-        interval = setInterval(refreshLeaderboard, 5000);
+        // Setup interval for regular refreshes
+        interval = setInterval(() => {
+            refreshLeaderboard();
+            updateSessionStatus();
+        }, 5000);
         
         // Return the cleanup function directly
         return () => {
@@ -119,6 +138,8 @@
     {#if !leaderboardState.initialized}
         <p class="text-gray-400">Loading...</p>
     {:else}
+
+    {#if sessionStatus.isActive}
 
     <UserCurrentlyPlaying />
     
@@ -196,7 +217,9 @@
             {/each}
         </ul>
     {/if}
-
+    {:else}
+        <p class="text-white mt-4">Waiting for session to start</p>
+    {/if}
     {/if}
 </main> 
 
