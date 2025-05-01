@@ -1,6 +1,6 @@
 import type { SpotifyTrack } from "$lib/types";
 
-export class LeaderboardState {
+class LeaderboardState {
     private list: Array<{ track: SpotifyTrack, votes: number }> = [];
     private initialized: boolean = false;
     private operationInProgress = false; // Add mutex-like locking
