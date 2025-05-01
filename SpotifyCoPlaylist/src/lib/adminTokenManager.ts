@@ -66,7 +66,7 @@ async function refreshAdminToken(): Promise<void> {
             const data = await response.json();
             
             if (data && data.token) {
-                if (data.tokan !== currentToken) {
+                if (data.token !== currentToken) {
                 console.log('Token changed, updating from: ',
                     currentToken ? currentToken.substring(0, 5) + '...' : 'none',
                     ' to: ', data.token.substring(0, 5) + '...');
