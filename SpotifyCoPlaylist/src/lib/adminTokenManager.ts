@@ -1,4 +1,5 @@
-import { readable, derived, writable } from 'svelte/store';
+import { readable, derived, writable, get } from 'svelte/store';
+import { getServerAdminToken } from './api';
 
 // Internal state
 let currentToken = '';
@@ -64,13 +65,15 @@ async function refreshAdminToken(): Promise<void> {
     refreshPromise = (async () => {
         try {
             console.log('Refreshing admin token...');
-            const response = await fetch('/api/admin-token');
+            const response = await getServerAdminToken();
             if (!response.ok) {
                 console.warn('Failed to get admin token:', response.statusText);
                 return;
             }
             
             const data = await response.json();
+
+            console.log('DATA FROM API:', data);
             
             if (data && data.token) {
                 // Ensure we're handling a string token
