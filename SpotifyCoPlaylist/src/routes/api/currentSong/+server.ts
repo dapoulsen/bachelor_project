@@ -1,20 +1,26 @@
 import { json } from '@sveltejs/kit';
-import { getCurrentSong, setCurrentSong } from '$lib/Server/currentSong';
+import { getCurrentSong, setCurrentSong, updateSongProgress, updatePlayingState } from '$lib/Server/currentSong';
 import type { RequestHandler } from '@sveltejs/kit';
 
-export const   GET: RequestHandler = async () => {
+export const GET: RequestHandler = async () => {
     try {
-        const song = getCurrentSong();
-        console.log('GET current-song:', song ? '✅ Song exists' : '❌ No song');
+        const songState = getCurrentSong();
+        console.log('GET current-song:', songState.song ? '✅ Song exists' : '❌ No song');
         
-
         return json({
-            currentSong: song || null,
-            status: song ? 'active' : 'none'
+            currentSong: songState.song,
+            progress_ms: songState.progress_ms,
+            is_playing: songState.is_playing,
+            status: songState.song ? 'active' : 'none'
         });
     } catch (error) {
         console.error('Error in GET current-song:', error);
-        return json({ currentSong: null, status: 'error' });
+        return json({ 
+            currentSong: null, 
+            progress_ms: 0,
+            is_playing: false,
+            status: 'error' 
+        });
     }
 };
 
@@ -31,14 +37,46 @@ export const POST: RequestHandler = async ({ request }) => {
         }
 
         console.log('POST current-song: Setting song:', data.song.name);
-        const song = setCurrentSong(data.song);
+        const songState = setCurrentSong(
+            data.song, 
+            data.progress_ms || 0,
+            data.is_playing !== undefined ? data.is_playing : true
+        );
 
         return json({
             success: true,
-            currentSong: song
+            currentSong: songState.song,
+            progress_ms: songState.progress_ms,
+            is_playing: songState.is_playing
         });
     } catch (error) {
         console.error('Error in POST current-song:', error);
+        return json({
+            success: false,
+            message: 'Server error'
+        });
+    }
+}
+
+// Optional: Add PATCH endpoint for updating just progress or playing state
+export const PATCH: RequestHandler = async ({ request }) => {
+    try {
+        const data = await request.json();
+        
+        if (data.progress_ms !== undefined) {
+            updateSongProgress(data.progress_ms);
+        }
+        
+        if (data.is_playing !== undefined) {
+            updatePlayingState(data.is_playing);
+        }
+        
+        return json({
+            success: true,
+            ...getCurrentSong()
+        });
+    } catch (error) {
+        console.error('Error in PATCH current-song:', error);
         return json({
             success: false,
             message: 'Server error'

@@ -119,8 +119,8 @@
                         },
                         body: JSON.stringify({ 
                             song,
-                            is_playing,
-                            progress_ms: progressMs
+                            progress_ms: progressMs,
+                            is_playing
                         })
                     });
                 } catch (error) {
