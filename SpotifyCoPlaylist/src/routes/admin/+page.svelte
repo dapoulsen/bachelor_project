@@ -94,6 +94,7 @@
         }
         
         // Use the simplified function that handles both server and client
+        console.log("ACCESSTOKEN IS: ", accessToken);
         const success = await setAdminToken(accessToken);
         
         if (success) {
