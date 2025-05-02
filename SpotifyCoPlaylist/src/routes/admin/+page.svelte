@@ -93,7 +93,7 @@
             leaderboardState.initialized = data.initialized;
         }
 
-        accessToken = Cookies.get("spotify_access_token") || ""; // Retrieve from cookies
+        accessToken = Cookies.get("spotify_access_token"); // Retrieve from cookies
         
         // Use the simplified function that handles both server and client
         console.log("ACCESSTOKEN IS: ", accessToken);

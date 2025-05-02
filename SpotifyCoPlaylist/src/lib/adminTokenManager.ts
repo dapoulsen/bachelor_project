@@ -1,4 +1,4 @@
-import { readable, derived, writable, get } from 'svelte/store';
+import { readable, derived, writable } from 'svelte/store';
 import { getServerAdminToken } from './api';
 
 // Internal state
@@ -108,36 +108,18 @@ async function refreshAdminToken(): Promise<void> {
 }
 
 // Force set the token (for direct API integration)
-export function forceSetToken(token: string | any): void {
+export function forceSetToken(token: string): void {
     if (!token) {
         console.warn('Attempted to force set empty token');
         return;
     }
     
-    // Handle the case where an object with access_token is passed
-    let tokenStr: string;
-    
-    if (typeof token === 'object' && token !== null) {
-        if (token.access_token && typeof token.access_token === 'string') {
-            tokenStr = token.access_token;
-            console.log('Extracted access_token from object');
-        } else {
-            console.error('Invalid token object format:', token);
-            return;
-        }
-    } else if (typeof token === 'string') {
-        tokenStr = token;
-    } else {
-        console.error('Invalid token type:', typeof token);
-        return;
-    }
-    
-    console.log('Force setting token to:', tokenStr.substring(0, 5) + '...');
-    currentToken = tokenStr;
+    console.log('Force setting token to:', token.substring(0, 5) + '...');
+    currentToken = token;
     
     // Mark the token as ready immediately when manually set
     tokenReady.set(true);
-    subscribers.forEach(notify => notify(tokenStr));
+    subscribers.forEach(notify => notify(token));
 }
 
 // Utility function to manually refresh the token
@@ -149,18 +131,6 @@ export async function refreshToken(): Promise<boolean> {
         console.error('Error in manual token refresh:', error);
         return false;
     }
-}
-
-// Add a debug function to help troubleshoot
-export function debugTokenState() {
-    console.log({
-        currentToken: currentToken ? '✅ Set' : '❌ Not set',
-        tokenValue: currentToken ? `${currentToken.substring(0, 5)}...` : 'none',
-        tokenType: typeof currentToken,
-        subscriberCount: subscribers.length,
-        isInitialized,
-        hasInterval: refreshInterval !== null
-    });
 }
 
 // Derived store that tells you if a token exists
