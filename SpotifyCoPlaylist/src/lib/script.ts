@@ -3,20 +3,7 @@ import Cookies from "js-cookie"; // Install with `npm install js-cookie`
 
 export const clientId = "1aacc1c2967a41b18cb20bfaeefe8ff2";
 let currentSong: SpotifyTrack | null = null;
-/*const code = params.get("code");
 
-if (!code) {
-    redirectToAuthCodeFlow(clientId);
-} else {
-    const accessToken = await getAccessToken(clientId, code);
-    const profile = await fetchProfile(accessToken);
-    const favoriteSong = await fetchFavoriteTrack(accessToken);
-    populateUI(profile);
-    if(favoriteSong != null){
-        populateFavoriteSong(favoriteSong);
-    }
-    playFavoriteSong(favoriteSong, accessToken);
-} */
 
 export async function redirectToAuthCodeFlow(clientId: string) {
 

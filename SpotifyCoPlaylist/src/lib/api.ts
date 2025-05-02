@@ -3,7 +3,9 @@ import { error } from "@sveltejs/kit";
 import { forceSetToken } from "./adminTokenManager";
 
 export async function getLeaderboard() {
-    const res = await fetch("api/leaderboard");
+    const res = await fetch("api/leaderboard", {
+        method: "GET"
+    });
     return await res.json();
 }
 

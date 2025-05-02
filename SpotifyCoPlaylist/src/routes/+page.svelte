@@ -44,7 +44,7 @@
         }
     }
 
-    const updateSessionStatus = async (): Promise<void> => {
+    async function updateSessionStatus()  {
         try {
             const status = await getSessionStatus();
             sessionStatus.isActive = status;
