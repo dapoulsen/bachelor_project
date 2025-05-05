@@ -105,7 +105,6 @@
             
             // Wait for next tick to ensure reactivity completes
             await new Promise(resolve => setTimeout(resolve, 0));
-            console.log("Token after setting:", $adminToken);
         } else {
             console.error("Failed to set admin token.");
             return;

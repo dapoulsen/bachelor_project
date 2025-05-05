@@ -206,41 +206,35 @@
         return `${minutes}:${seconds.toString().padStart(2, '0' )}`;
     }
 
-    onMount(async () => {
-        console.log("CurrentlyPlaying component mounting, checking for token...");
-        console.log("Initial token state:", $adminToken ? "Token exists" : "No token");
+    onMount(() => {
+        // Create a token subscription early in mount
+        const unsubscribe = adminToken.subscribe(token => {
+            if (token) {
+                console.log("Token became available, initializing player...");
+                // Only initialize once when token first becomes available
+                if (!syncInterval) {
+                    updateSong();
+                    syncInterval = setInterval(updateSong, 10000);
+                }
+            }
+        });
         
-        // If no token, first try to refresh it
+        // Still try to refresh immediately in case we're starting without a token
         if (!$adminToken) {
             console.log("No token on mount, attempting refresh...");
-            const hasToken = await refreshToken();
-            console.log("Initial token refresh result:", hasToken ? "✅ Success" : "❌ Failed");
-        }
-        
-        // Wait until token is available or a timeout occurs
-        let attempts = 0;
-        const maxAttempts = 10; // Maximum number of attempts (5 seconds total)
-        
-        while (!$adminToken && attempts < maxAttempts) {
-            console.log(`Waiting for token (attempt ${attempts + 1}/${maxAttempts})...`);
-            await new Promise(resolve => setTimeout(resolve, 500)); // Wait 500ms between checks
-            attempts++;
-        }
-        
-        if ($adminToken) {
-            console.log("Token available, initializing component");
-            updateSong();
-            syncInterval = setInterval(updateSong, 10000);
+            refreshToken();
         } else {
-            console.error("Failed to get token after multiple attempts");
+            console.log("Token already available on mount");
         }
-    });
-
-    onDestroy(() => {
-        stopProgress();
-        if (syncInterval) {
-            clearInterval(syncInterval);
-        }
+        
+        // Handle cleanup of this subscription
+        return () => {
+            unsubscribe();
+            stopProgress();
+            if (syncInterval) {
+                clearInterval(syncInterval);
+            }
+        };
     });
 
 </script>
