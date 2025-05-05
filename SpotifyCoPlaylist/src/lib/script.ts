@@ -82,28 +82,6 @@ export async function getAccessToken(clientId: string, code: string): Promise<{ 
 }
 
 
-async function fetchProfile(token: string): Promise<UserProfile> {
-        const result = await fetch("https://api.spotify.com/v1/me", {
-        method: "GET", headers: { Authorization: `Bearer ${token}` }
-    });
-
-    return await result.json();
-}
-
-export async function fetchFavoriteTrack(token: string): Promise<SpotifyTrack | null> {
-    const response = await fetch("https://api.spotify.com/v1/me/top/tracks?time_range=short_term&limit=1&offset=0", {
-      method: "GET", headers: { Authorization: `Bearer ${token}` }
-    });
-    
-    if (!response.ok) {
-      console.error("Failed to fetch top tracks", response.status);
-      return null;
-    }
-    
-    const data: SpotifyTopTracksResponse = await response.json();
-    return data.items[0]; // return the top (favorite) track
-  }
-
 export async function searchForSong(token: string, searchKey: string){
     console.log(token);
     const response = await fetch(`https://api.spotify.com/v1/search?q=${searchKey}&type=track&limit=5`, 
@@ -118,58 +96,6 @@ export async function searchForSong(token: string, searchKey: string){
     return data;
 }
   
-
-export function populateFavoriteSong(track: SpotifyTrack) {
-    const favoriteSongElement = document.getElementById("favoriteSong");
-    if (!favoriteSongElement) return;
-    
-    favoriteSongElement.innerHTML = `
-      <h2>${track.name}</h2>
-      <p>Artist: ${track.artists.map(artist => artist.name).join(", ")}</p>
-      <img src="${track.album.images[0]?.url}" alt="${track.album.name}" width="200" />
-      <p>Album: ${track.album.name}</p>
-      <p>Duration: ${track.duration_ms}</p>
-    `;
-  }
-
-function populateUI(profile: UserProfile) {
-    document.getElementById("displayName")!.innerText = profile.display_name;
-    if (profile.images[0]) {
-        const profileImage = new Image(200, 200);
-        profileImage.src = profile.images[0].url;
-        document.getElementById("avatar")!.appendChild(profileImage);
-    }
-    document.getElementById("id")!.innerText = profile.id;
-    document.getElementById("email")!.innerText = profile.email;
-    document.getElementById("uri")!.innerText = profile.uri;
-    document.getElementById("uri")!.setAttribute("href", profile.external_urls.spotify);
-    document.getElementById("url")!.innerText = profile.href;
-    document.getElementById("url")!.setAttribute("href", profile.href);
-    document.getElementById("imgUrl")!.innerText = profile.images[0]?.url ?? '(no profile image)';
-}
-
-export async function playFavoriteSong(favoriteSong: SpotifyTrack | null, token: string) {
-    if (favoriteSong != null) {
-        const response = await fetch(`https://api.spotify.com/v1/me/player/queue?uri=${favoriteSong.uri}`, {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json"
-            }
-        });
-
-        if (!response.ok) {
-            console.error("Failed to add song to queue:", await response.json());
-        } else {
-            console.log("Song added to queue successfully!");
-        }
-    } else {
-        console.error("No favorite song provided");
-    }
-
-    console.log("Hejsa");
-    console.log(favoriteSong?.uri);
-}
 
 export async function queueSelectedSong(song: SpotifyTrack | null, token:string) {
     if (song != null) {
