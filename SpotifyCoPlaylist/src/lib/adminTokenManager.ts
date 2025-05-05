@@ -12,7 +12,7 @@ let refreshPromise: Promise<void> | null = null;
 export const tokenReady = writable(false);
 
 // Create a readable store for the token
-export const adminToken = readable('', (set) => {
+export const adminToken = readable(currentToken, (set) => {
     // Add this subscriber to our list
     const updateToken = (token: string) => {
         set(token);
@@ -126,7 +126,20 @@ export function forceSetToken(token: string): void {
 export async function refreshToken(): Promise<boolean> {
     try {
         await refreshAdminToken();
-        return currentToken !== '';
+        
+        // If we have a token after refresh, force subscribe notification
+        if (currentToken !== '') {
+            // Explicitly notify all subscribers to ensure reactivity
+            subscribers.forEach(notify => notify(currentToken));
+            // Set the token as ready
+            tokenReady.set(true);
+            console.log('Token refreshed and notified subscribers:', currentToken.substring(0, 10) + '...');
+            return true;
+        }
+        
+        // If we get here, we failed to get or set a token
+        console.error('Failed to refresh token - no token available');
+        return false;
     } catch (error) {
         console.error('Error in manual token refresh:', error);
         return false;

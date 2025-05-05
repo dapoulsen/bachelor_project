@@ -3,7 +3,7 @@
     import type { SpotifyTrack } from "$lib/types.js";
     import { fetchCurrentTrack, queueSelectedSong } from "$lib/script";
     import { Tween } from "svelte/motion";
-    import { getLeaderboard, removeFromLeaderboard } from "$lib/api";
+    import { getLeaderboard, getServerAdminToken, removeFromLeaderboard } from "$lib/api";
     import { adminToken, refreshToken, tokenReady } from "$lib/adminTokenManager";
     
     
@@ -67,9 +67,9 @@
         } else {
             console.log("har du overvejet at der skal være sange her");
         }
+    }   
     }
-        
-    }
+
 
     async function updateSong() {
         try {
@@ -206,35 +206,45 @@
         return `${minutes}:${seconds.toString().padStart(2, '0' )}`;
     }
 
-    onMount(() => {
-        // Create a token subscription early in mount
-        const unsubscribe = adminToken.subscribe(token => {
-            if (token) {
-                console.log("Token became available, initializing player...");
-                // Only initialize once when token first becomes available
-                if (!syncInterval) {
-                    updateSong();
-                    syncInterval = setInterval(updateSong, 10000);
-                }
-            }
-        });
+    onMount(async () => {
+        console.log("CurrentlyPlaying component mounting, checking for token...");
+        console.log("Initial token state:", $adminToken ? "Token exists" : "No token");
         
-        // Still try to refresh immediately in case we're starting without a token
+        // If no token, first try to refresh it
         if (!$adminToken) {
             console.log("No token on mount, attempting refresh...");
-            refreshToken();
-        } else {
-            console.log("Token already available on mount");
+            const hasToken = await refreshToken();
+            console.log("Initial token refresh result:", hasToken ? "✅ Success" : "❌ Failed");
+            
+            // Add a small delay to ensure reactivity has time to propagate
+            if (hasToken) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
         }
         
-        // Handle cleanup of this subscription
-        return () => {
-            unsubscribe();
-            stopProgress();
-            if (syncInterval) {
-                clearInterval(syncInterval);
-            }
-        };
+        // Try a few times to ensure token is available (with short delays)
+        let attempts = 0;
+        while (!$adminToken && attempts < 10) {
+            console.log(`Waiting for token (attempt ${attempts + 1}/10)...`);
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+        }
+        
+        // Proceed with initialization
+        if ($adminToken) {
+            console.log("Token available, initializing component with:", $adminToken.substring(0, 10) + "...");
+            updateSong();
+            syncInterval = setInterval(updateSong, 10000);
+        } else {
+            console.error("Failed to get token after multiple attempts");
+        }
+    });
+
+    onDestroy(() => {
+        stopProgress();
+        if (syncInterval) {
+            clearInterval(syncInterval);
+        }
     });
 
 </script>

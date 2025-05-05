@@ -61,9 +61,9 @@
         updateSessionStatus();
 
         // Setup interval for regular refreshes
-        interval = setInterval(() => {
-            refreshLeaderboard();
-            updateSessionStatus();
+        interval = setInterval(async () => {
+            await refreshLeaderboard();
+            await updateSessionStatus();
         }, 5000);
         
         // Return the cleanup function directly
@@ -125,10 +125,6 @@
     
     
 </script>
-
-
-
-<!-- <SpotifyAuth /> -->
 
 
 <main class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 to-black p-8 text-white">
