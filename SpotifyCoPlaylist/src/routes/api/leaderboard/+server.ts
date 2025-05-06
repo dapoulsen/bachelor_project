@@ -5,6 +5,7 @@ import type { RequestHandler } from "./$types";
 export const GET: RequestHandler = async () => {
     const status = leaderboardState.getStatus();
     leaderboardState.sortLeaderboard();
+    console.log(json(status));
     return json(status);
 }
 
