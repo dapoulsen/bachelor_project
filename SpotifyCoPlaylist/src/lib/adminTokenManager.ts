@@ -81,7 +81,7 @@ async function refreshAdminToken(): Promise<void> {
             
             // Ensure we're handling a string token
             const tokenStr = typeof tokenValue === 'string' ? tokenValue : 
-                (tokenValue && tokenValue.access_token ? tokenValue.access_token : '');
+                (tokenValue && tokenValue.token ? tokenValue.token : '');
             
             if (!tokenStr) {
                 console.warn('Invalid token format received');
