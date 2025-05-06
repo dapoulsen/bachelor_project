@@ -38,6 +38,7 @@ class LeaderboardState {
     }
 
     async reset() {
+        console.log('RESET CALLED!', new Error().stack); // Add stack trace to see where it's called from
         return this.withLock(() => {
             this.list = [];
             this.initialized = false;
