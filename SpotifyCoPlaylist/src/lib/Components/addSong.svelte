@@ -20,11 +20,12 @@
         search: ""
     });
 
+
     // Ensure we have a token when component mounts
     onMount(async () => {
         // If token isn't ready, show a message and try to refresh
         if (!$adminToken) {
-            console.log("AddSong: No token on mount, attempting refresh...");
+            console.log("AddSong: No token on mount - attempting refresh...");
             await refreshToken();
             
             // Wait for the token to be ready or timeout after a few tries
