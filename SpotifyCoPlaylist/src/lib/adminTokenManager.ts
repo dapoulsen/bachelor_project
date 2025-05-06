@@ -8,6 +8,10 @@ let refreshInterval: ReturnType<typeof setInterval> | null = null;
 let isInitialized = false;
 let refreshPromise: Promise<void> | null = null;
 
+// Add token expiration tracking
+let tokenExpiration: number | null = null;
+const TOKEN_REFRESH_BUFFER = 5 * 60 * 1000; // 5 minutes before expiry
+
 // Add a ready state to track when the token is fully loaded
 export const tokenReady = writable(false);
 
@@ -47,21 +51,23 @@ function initializeTokenRefresh() {
     if (isInitialized) return;
     
     isInitialized = true;
-    
-    // Do an initial refresh
     refreshAdminToken();
     
-    // Set up the refresh interval
-    refreshInterval = setInterval(refreshAdminToken, 30000); // Refresh every 30 seconds
-
+    // Increase refresh interval to 5 minutes
+    refreshInterval = setInterval(refreshAdminToken, 5 * 60 * 1000);
     console.log('Token refresh initialized. Current token:', currentToken);
 }
 
 // Refresh the token from the server
 async function refreshAdminToken(): Promise<void> {
-    //If there is already a refresh in progress, return that promise
     if (refreshPromise) return refreshPromise;
     
+    // Check if token needs refresh
+    if (tokenExpiration && Date.now() < tokenExpiration - TOKEN_REFRESH_BUFFER) {
+        console.log('Token still valid, skipping refresh');
+        return;
+    }
+
     refreshPromise = (async () => {
         try {
             console.log('Refreshing admin token...');
@@ -88,6 +94,7 @@ async function refreshAdminToken(): Promise<void> {
                     ' to: ', tokenStr.substring(0, 5) + '...');
                 
                 currentToken = tokenStr;
+                tokenExpiration = Date.now() + 3600 * 1000; // Set expiration 1 hour from now
                 
                 // Mark token as ready
                 tokenReady.set(true);

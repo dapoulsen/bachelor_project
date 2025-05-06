@@ -128,7 +128,10 @@ export async function getServerAdminToken() {
         }
         
         const data = await response.json();
-        return data.token || null;
+        return {
+            token: data.token,
+            expiresIn: data.expires_in || 3600 // Default 1 hour if not specified
+        };
     } catch (error) {
         console.error('Error getting admin token:', error);
         return null;
