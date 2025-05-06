@@ -1,0 +1,185 @@
+<script lang="ts">
+    import { onMount, onDestroy } from "svelte";
+    import type { SpotifyTrack } from "$lib/types";
+    import { Tween } from "svelte/motion";
+    
+    // State for component
+    let currentlyPlaying = $state<SpotifyTrack | null>(null);
+    let progress_ms = $state(0);
+    let duration = $state(0);
+    let is_playing = $state(false);
+    let isLoading = $state(true);
+    let error = $state<string | null>(null);
+    
+    // Progress bar animation
+    const progress = new Tween(0, { duration: 100 });
+    
+    // Tracking time
+    let startTime = $state(0);
+    let updateInterval = $state<ReturnType<typeof setInterval> | null>(null);
+    
+    // Format milliseconds into MM:SS display
+    function formatTime(ms: number): string {
+        const totalSeconds = Math.floor(ms / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+    
+    // Fetch current song from our own API
+    async function fetchCurrentSong() {
+        try {
+            const response = await fetch('/api/currentSong', {
+                method: 'GET'
+            });
+            
+            if (!response.ok) {
+                error = `Error fetching current song: ${response.status}`;
+                return;
+            }
+            
+            const data = await response.json();
+            
+            if (data.currentSong) {
+                const newSong = data.currentSong;
+                const newProgress = data.progress_ms || 0;
+                const newIsPlaying = data.is_playing !== undefined ? data.is_playing : false;
+                
+                // If it's a new song or first load
+                if (!currentlyPlaying || currentlyPlaying.id !== newSong.id) {
+                    currentlyPlaying = newSong;
+                    duration = newSong.duration_ms;
+                    startTime = Date.now() - newProgress;
+                    progress.set(newProgress, { duration: 0 });
+                }
+                
+                // Update play state
+                if (is_playing !== newIsPlaying) {
+                    is_playing = newIsPlaying;
+                    
+                    if (is_playing) {
+                        startProgressTracking(newProgress);
+                    } else {
+                        stopProgressTracking();
+                    }
+                }
+                
+                // Always update progress from server
+                progress_ms = newProgress;
+            } else {
+                currentlyPlaying = null;
+                stopProgressTracking();
+            }
+        } catch (e) {
+            console.error("Error fetching current song:", e);
+            error = "Failed to fetch current song";
+        } finally {
+            isLoading = false;
+        }
+    }
+    
+    // Start tracking progress locally
+    function startProgressTracking(initialProgress: number = 0) {
+        stopProgressTracking(); // Clear any existing interval
+        
+        startTime = Date.now() - initialProgress;
+        progress.set(initialProgress, { duration: 0 });
+        
+        updateInterval = setInterval(() => {
+            if (currentlyPlaying) {
+                const elapsed = Date.now() - startTime;
+                if (elapsed <= currentlyPlaying.duration_ms) {
+                    progress.set(elapsed);
+                }
+            }
+        }, 1000);
+    }
+    
+    // Stop progress tracking
+    function stopProgressTracking() {
+        if (updateInterval) {
+            clearInterval(updateInterval);
+            updateInterval = null;
+        }
+    }
+    
+    onMount(() => {
+        // Initial fetch
+        fetchCurrentSong();
+        
+        // Set up polling interval - much less frequent than direct Spotify API calls
+        const intervalId = setInterval(fetchCurrentSong, 5000);
+        
+        return () => {
+            clearInterval(intervalId);
+            stopProgressTracking();
+        };
+    });
+    
+    onDestroy(() => {
+        stopProgressTracking();
+    });
+</script>
+
+<div class="mb-8">
+    <h2 class="text-2xl font-semibold mb-4">Now Playing</h2>
+    
+    {#if isLoading}
+        <div class="p-4 bg-gray-800 rounded-lg text-center">
+            <p class="text-gray-400">Loading current track...</p>
+        </div>
+    {:else if error}
+        <div class="p-4 bg-gray-800 rounded-lg text-center">
+            <p class="text-red-400">{error}</p>
+        </div>
+    {:else if currentlyPlaying}
+        <div class="bg-gray-800 p-4 rounded-lg flex items-center space-x-4 shadow-md">
+            <img 
+                src={currentlyPlaying.album.images[0]?.url} 
+                alt={currentlyPlaying.album.name} 
+                class="w-16 h-16 rounded-lg"
+            />
+            <div class="flex-1">
+                <p class="text-lg font-semibold">{currentlyPlaying.name}</p>
+                <p class="text-gray-400">{currentlyPlaying.artists.map(artist => artist.name).join(", ")}</p>
+                
+                <progress value={progress.current} max={duration} class="w-full mt-2"></progress>
+                <div class="flex justify-between text-sm text-gray-400 mt-1">
+                    <span>{formatTime(progress.current)}</span>
+                    <span>{formatTime(duration)}</span>
+                </div>
+            </div>
+        </div>
+    {:else}
+        <div class="p-4 bg-gray-800 rounded-lg text-center">
+            <p class="text-gray-400">No track currently playing</p>
+        </div>
+    {/if}
+</div>
+
+<style>
+    progress {
+        display: block;
+        width: 100%;
+        height: 8px;
+        border-radius: 4px;
+        overflow: hidden;
+        background-color: #333;
+    }
+    
+    progress::-webkit-progress-bar {
+        background-color: #333;
+        border-radius: 4px;
+    }
+    
+    progress::-webkit-progress-value {
+        background-color: #1DB954; /* Spotify green */
+        border-radius: 4px;
+        transition: width 0.1s linear;
+    }
+    
+    progress::-moz-progress-bar {
+        background-color: #1DB954;
+        border-radius: 4px;
+    }
+</style>
