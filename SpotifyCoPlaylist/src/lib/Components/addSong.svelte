@@ -6,6 +6,7 @@
     import { addToLeaderboard, getServerAdminToken } from "$lib/api";
     import { adminToken, refreshToken, tokenReady } from "$lib/adminTokenManager";
     import { onMount } from "svelte";
+    import { hasVotedForTrack, recordVote } from "$lib/voteTracker"; // Import vote tracking functions
 
     let { onSongAdded } = $props<{
         onSongAdded?: (track: SpotifyTrack) => void
@@ -75,9 +76,15 @@
     }
 
     async function addSongToLeaderboard(track: SpotifyTrack) {
-        await addToLeaderboard(track);
-        if (onSongAdded) {
-            onSongAdded(track);
+        try {
+            await addToLeaderboard(track);
+            // Record that the user has voted for this track (as adding is like upvoting)
+            recordVote(track.id, 'increment');
+            if (onSongAdded) {
+                onSongAdded(track);
+            }
+        } catch (error) {
+            console.error("Error adding song to leaderboard:", error);
         }
     }
 </script>
@@ -127,7 +134,8 @@
         <!-- Search Results -->
         <ul class="mt-6 space-y-4">
             {#each searchResults.tracks.items as track}
-                <li class="bg-gray-800 p-4 rounded-lg flex items-center space-x-4 shadow-md">
+                {@const isAdded = hasVotedForTrack(track.id)}
+                <li class="bg-gray-800 p-4 rounded-lg flex items-center space-x-4 shadow-md {isAdded ? 'border border-green-600' : ''}">
                     <img 
                         src={track.album.images[0]?.url} 
                         alt={track.album.name} 
@@ -139,10 +147,11 @@
                         <p class="text-sm text-gray-500">{track.album.name}</p>
                     </div>
                     <button 
-                        class="ml-auto bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105"
+                        class="ml-auto bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 {isAdded ? 'opacity-50 cursor-not-allowed' : ''}"
                         onclick={() => addSongToLeaderboard(track)}
+                        disabled={isAdded}
                     >
-                        ➕ Add
+                        {isAdded ? '✓ Added' : '➕ Add'}
                     </button>
                 </li>
             {/each}

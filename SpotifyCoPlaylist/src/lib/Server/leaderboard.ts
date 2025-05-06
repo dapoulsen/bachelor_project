@@ -23,11 +23,9 @@ class LeaderboardState {
     async addToLeaderboard(item: SpotifyTrack) {
         return this.withLock(() => {
             const existingTrack = this.list.find(entry => entry.track.id === item.id);
-            if(existingTrack) {
-                existingTrack.votes += 1;
-            } else {
+            if(!existingTrack) {
                 this.list.push({ track: item, votes: 1 });
-            }
+            } 
             return this.getStatus();
         });
     }
