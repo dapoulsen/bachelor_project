@@ -4,7 +4,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 
 export const GET: RequestHandler = async () => {
     try {
-        const songState = getCurrentSong();
+        const songState = await getCurrentSong();
         console.log('GET current-song:', songState.song ? '✅ Song exists' : '❌ No song');
         
         return json({
@@ -37,7 +37,7 @@ export const POST: RequestHandler = async ({ request }) => {
         }
 
         console.log('POST current-song: Setting song:', data.song.name);
-        const songState = setCurrentSong(
+        const songState = await setCurrentSong(
             data.song, 
             data.progress_ms || 0,
             data.is_playing !== undefined ? data.is_playing : true
@@ -64,16 +64,18 @@ export const PATCH: RequestHandler = async ({ request }) => {
         const data = await request.json();
         
         if (data.progress_ms !== undefined) {
-            updateSongProgress(data.progress_ms);
+            await updateSongProgress(data.progress_ms);
         }
         
         if (data.is_playing !== undefined) {
-            updatePlayingState(data.is_playing);
+            await updatePlayingState(data.is_playing);
         }
+
+        const currentSongState = await getCurrentSong();
         
         return json({
             success: true,
-            ...getCurrentSong()
+            ...currentSongState
         });
     } catch (error) {
         console.error('Error in PATCH current-song:', error);
