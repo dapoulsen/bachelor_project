@@ -45,7 +45,7 @@ export async function setCurrentSong(song: SpotifyTrack, progress_ms: number = 0
     console.log('Setting current song:', song.name, 'Progress:', progress_ms, 'Playing:', is_playing);
     
     // Store values in Redis - ensure proper JSON stringification
-    await redis.set(SONG_KEY, JSON.stringify(song.name));
+    await redis.set(SONG_KEY, JSON.stringify(song));
     await redis.set(PROGRESS_KEY, progress_ms);
     await redis.set(PLAYING_KEY, is_playing);
     
@@ -58,25 +58,32 @@ export async function setCurrentSong(song: SpotifyTrack, progress_ms: number = 0
 
 export async function getCurrentSong(): Promise<CurrentSongState> {
     // Get values from Redis
-    const songJson = await redis.get<string>(SONG_KEY);
+    const songData = await redis.get(SONG_KEY);
     const progress_ms = await redis.get<number>(PROGRESS_KEY) || 0;
     const is_playing = await redis.get<boolean>(PLAYING_KEY) || false;
     
     let song: SpotifyTrack | null = null;
     
-    // Add error handling for JSON parsing
-    if (songJson) {
+    // Check if we have song data
+    if (songData) {
         try {
-            // Check if the string is actually the string "[object Object]"
-            if (songJson === "[object Object]") {
-                console.error("Invalid song data stored in Redis: [object Object]");
-            } else {
-                console.log(songJson)
-                song = JSON.parse(songJson) as SpotifyTrack;
-                console.log('Parsed song:', song);
+            // Handle different types that might be returned from Redis
+            if (typeof songData === 'string') {
+                if (songData === "[object Object]") {
+                    console.error("Invalid song data stored in Redis: [object Object]");
+                } else {
+                    console.log("Got song as string, parsing...");
+                    song = JSON.parse(songData) as SpotifyTrack;
+                }
+            } else if (typeof songData === 'object' && songData !== null) {
+                // Data is already an object, use it directly
+                console.log("Got song as object, using directly");
+                song = songData as SpotifyTrack;
             }
+            
+            console.log('Parsed song:', song?.name);
         } catch (err) {
-            console.error("Error parsing song JSON:", err);
+            console.error("Error processing song data:", err, "Raw data type:", typeof songData);
         }
     }
     
