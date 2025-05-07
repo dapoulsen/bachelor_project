@@ -75,7 +75,7 @@ class LeaderboardState {
     }
 
     async reset() {
-        console.log('RESET CALLED!', new Error().stack);
+        console.log('RESET CALLED!');
         await Promise.all([
             redis.set(this.LEADERBOARD_KEY, JSON.stringify([])),
             redis.set(this.STATUS_KEY, JSON.stringify({ initialized: false }))
