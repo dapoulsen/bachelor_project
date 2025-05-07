@@ -90,6 +90,7 @@
     async function startSession(){
         if (!leaderboardState.initialized) {
             const data = await initializeLeaderboard();
+            console.log("Session started", data.initialized);
             leaderboardState.initialized = data.initialized;
         }
 

@@ -4,6 +4,6 @@ import type { RequestHandler } from "./$types";
 
 export const POST: RequestHandler = async ( { request }) => {
     const { id } = await request.json();
-    const status = leaderboardState.removeFromLeaderboard(id);
+    const status = await leaderboardState.removeFromLeaderboard(id);
     return json(status);
 }

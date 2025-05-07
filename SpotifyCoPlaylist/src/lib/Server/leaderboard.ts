@@ -1,6 +1,7 @@
 import type { SpotifyTrack } from "$lib/types";
 import { Redis } from '@upstash/redis';
 import { env } from '$env/dynamic/private';
+import { json } from "stream/consumers";
 
 // Use SvelteKit's env system or fallback to process.env for serverless environments
 let redisUrl: string;
@@ -48,8 +49,29 @@ class LeaderboardState {
     }
 
     async initialize() {
-        await redis.set(this.STATUS_KEY, JSON.stringify({ initialized: true }));
-        return this.getStatus();
+        console.log("Starting initialization...");
+        
+        try {
+            // Set empty leaderboard
+            await redis.set(this.LEADERBOARD_KEY, JSON.stringify([]));
+            console.log("Leaderboard key set to empty array");
+            
+            // Set initialized status
+            await redis.set(this.STATUS_KEY, JSON.stringify({ initialized: true }));
+            console.log("Status key set to initialized: true");
+            
+            // Verify the data was stored correctly by reading it back
+            const leaderboardData = await redis.get(this.LEADERBOARD_KEY);
+            const statusData = await redis.get(this.STATUS_KEY);
+            
+            console.log("Verification - Leaderboard data:", leaderboardData);
+            console.log("Verification - Status data:", statusData);
+            
+            return this.getStatus();
+        } catch (error) {
+            console.error("Redis initialization error:", error);
+            throw error;
+        }
     }
 
     async reset() {
@@ -114,7 +136,13 @@ class LeaderboardState {
     // Helper methods
     private async getLeaderboardData(): Promise<Array<{ track: SpotifyTrack, votes: number }>> {
         try {
-            const data = await redis.get<string>(this.LEADERBOARD_KEY);
+            const data = await redis.get(this.LEADERBOARD_KEY);
+            console.log('LEADERBOARD DATA:', data);
+            
+            // If data is already an array (auto-parsed by client)
+            if (Array.isArray(data)) {
+                return data;
+            }
             
             // Check if data exists and is a non-empty string
             if (data && typeof data === 'string' && data.trim() !== '') {
@@ -122,7 +150,6 @@ class LeaderboardState {
                     return JSON.parse(data);
                 } catch (parseError) {
                     console.error('Error parsing leaderboard data:', parseError);
-                    // If JSON parsing fails, return an empty array
                     return [];
                 }
             }
@@ -137,19 +164,25 @@ class LeaderboardState {
 
     private async getStatusData(): Promise<{ initialized: boolean }> {
         try {
-            const data = await redis.get<string>(this.STATUS_KEY);
+            const data = await redis.get(this.STATUS_KEY);
+            console.log('STATUS DATA:', data);
             
+            // Check if data exists and is an object with the initialized property
+            if (data && typeof data === 'object' && 'initialized' in data) {
+                return data as { initialized: boolean };
+            }
+            
+            // If data is a string (old format or not auto-parsed)
             if (data && typeof data === 'string' && data.trim() !== '') {
                 try {
                     return JSON.parse(data);
                 } catch (parseError) {
                     console.error('Error parsing status data:', parseError);
-                    // If JSON parsing fails, return default status
                     return { initialized: false };
                 }
             }
             
-            // If no data or empty string, return default status
+            // Default case
             return { initialized: false };
         } catch (error) {
             console.error('Error fetching status data from Redis:', error);
