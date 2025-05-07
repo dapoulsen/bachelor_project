@@ -18,7 +18,7 @@
         playOrPause
      } from "$lib/script";
     import Cookies from "js-cookie";
-    import { adminToken, tokenReady } from "$lib/adminTokenManager"; 
+    import { tokenReady } from "$lib/adminTokenManager"; 
 
      //Password protection state
      let passwordVerified = $state(false);

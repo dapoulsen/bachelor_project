@@ -94,14 +94,14 @@ export async function getCurrentSong(token: string): Promise<SpotifyTrack | null
     
 }
 
-export async function setCurrentSong(token: string, song: SpotifyTrack): Promise<SpotifyTrack | null> {
+export async function setCurrentSong(song: SpotifyTrack): Promise<SpotifyTrack | null> {
     try {
         const response = await fetch('/api/currentSong', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ token, song })
+            body: JSON.stringify(song)
         });
         if (!response.ok) {
             console.error('Failed to set current song:', response.statusText);

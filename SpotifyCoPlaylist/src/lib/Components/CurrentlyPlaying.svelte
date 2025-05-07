@@ -3,7 +3,7 @@
     import type { SpotifyTrack } from "$lib/types.js";
     import { fetchCurrentTrack, queueSelectedSong } from "$lib/script";
     import { Tween } from "svelte/motion";
-    import { getLeaderboard, getServerAdminToken, removeFromLeaderboard } from "$lib/api";
+    import { getLeaderboard, getServerAdminToken, removeFromLeaderboard, setCurrentSong } from "$lib/api";
     import { adminToken, refreshToken, tokenReady } from "$lib/adminTokenManager";
     
     
@@ -107,7 +107,7 @@
             if (!currentlyPlaying || currentlyPlaying.id !== song.id) {
                 console.log('New song detected:', song);
                 currentlyPlaying = song;
-                startNewSongProgress(song, progressMs);
+                await startNewSongProgress(song, progressMs);
                 hasAddedSong = false;
                 
                 // Also update our server's current song state
@@ -136,7 +136,7 @@
                 stopProgress();
             } else if (!updateInterval) {
                 // If playing but no interval, restart progress tracking
-                startNewSongProgress(song, progressMs);
+                await startNewSongProgress(song, progressMs);
             }
         } catch (error) {
             console.error('Error fetching current song:', error);
@@ -144,7 +144,7 @@
     }
 
     // Start progress tracking for a new song
-    function startNewSongProgress(song: SpotifyTrack, progressMs: number) {
+    async function startNewSongProgress(song: SpotifyTrack, progressMs: number) {
         // Safety check
         if (!song || typeof song.duration_ms !== 'number') {
             console.error("Invalid song object:", song);
@@ -157,6 +157,8 @@
         duration = song.duration_ms;
         const initialProgress = progressMs || 0;
         startTime = Date.now() - initialProgress;
+    
+        await setCurrentSong(song);
 
         // Set initial progress immediately
         progress.set(initialProgress, { duration: 0 }); // No animation for the first set
