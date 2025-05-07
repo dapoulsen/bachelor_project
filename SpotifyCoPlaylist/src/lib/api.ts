@@ -109,6 +109,7 @@ export async function setCurrentSong(song: SpotifyTrack): Promise<SpotifyTrack |
         }
 
         const data = await response.json();
+        console.log('Current song set successfully:', data);
         return data.success || false;
         }catch (error) {
             console.error('Error setting current song:', error);

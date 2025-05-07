@@ -44,8 +44,8 @@ const PLAYING_KEY = 'is_playing';
 export async function setCurrentSong(song: SpotifyTrack, progress_ms: number = 0, is_playing: boolean = true): Promise<CurrentSongState> {
     console.log('Setting current song:', song.name, 'Progress:', progress_ms, 'Playing:', is_playing);
     
-    // Store values in Redis
-    await redis.set(SONG_KEY, JSON.stringify(song));
+    // Store values in Redis - ensure proper JSON stringification
+    await redis.set(SONG_KEY, JSON.stringify(song.name));
     await redis.set(PROGRESS_KEY, progress_ms);
     await redis.set(PLAYING_KEY, is_playing);
     
@@ -62,10 +62,24 @@ export async function getCurrentSong(): Promise<CurrentSongState> {
     const progress_ms = await redis.get<number>(PROGRESS_KEY) || 0;
     const is_playing = await redis.get<boolean>(PLAYING_KEY) || false;
     
-    const song = songJson ? JSON.parse(songJson) as SpotifyTrack : null;
+    let song: SpotifyTrack | null = null;
+    
+    // Add error handling for JSON parsing
+    if (songJson) {
+        try {
+            // Check if the string is actually the string "[object Object]"
+            if (songJson === "[object Object]") {
+                console.error("Invalid song data stored in Redis: [object Object]");
+            } else {
+                song = JSON.parse(songJson) as SpotifyTrack;
+            }
+        } catch (err) {
+            console.error("Error parsing song JSON:", err);
+        }
+    }
     
     if (!song) {
-        console.log('No current song set.');
+        console.log('No current song set or invalid song data.');
         return { song: null, progress_ms: 0, is_playing: false };
     }
     
