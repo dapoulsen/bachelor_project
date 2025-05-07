@@ -71,7 +71,9 @@ export async function getCurrentSong(): Promise<CurrentSongState> {
             if (songJson === "[object Object]") {
                 console.error("Invalid song data stored in Redis: [object Object]");
             } else {
+                console.log(songJson)
                 song = JSON.parse(songJson) as SpotifyTrack;
+                console.log('Parsed song:', song);
             }
         } catch (err) {
             console.error("Error parsing song JSON:", err);
