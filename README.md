@@ -1,10 +1,12 @@
 # BachelorProject
 
 ## TODO
-Create AdminToken in API
-Alternatively make fetchSong a global field
 
-Only vote once
+Add close button to vote and add screens
+Add visual when you add a song
+Make skip button skip to next song on leaderboard
+Make session end on dismount
+
 
 Make the code use Strategy patterns - making it modular
 
