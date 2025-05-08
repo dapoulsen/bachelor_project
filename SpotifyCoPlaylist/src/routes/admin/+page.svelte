@@ -145,8 +145,8 @@
             console.log("Leaderboard data:", leaderboard);
             const topSong = leaderboard.list[0].track; // Get the top song from the leaderboard
             await queueSelectedSong(topSong, accessToken); // Queue the selected song
-            const data = await skipSong(accessToken);
             await removeFromLeaderboard(topSong.id); // Remove the song from the leaderboard after skipping
+            const data = await skipSong(accessToken);
             console.log(data);
         }
     }
