@@ -141,7 +141,8 @@
     async function skip() {
         if (leaderboardState.initialized) {
             const leaderboard = await getLeaderboard();
-            const topSong = leaderboard.songs[0]; // Get the top song from the leaderboard
+            console.log("Leaderboard data:", leaderboard);
+            const topSong = leaderboard.list[0]; // Get the top song from the leaderboard
             await queueSelectedSong(accessToken, topSong); // Queue the selected song
             const data = await skipSong(accessToken);
             console.log(data);
