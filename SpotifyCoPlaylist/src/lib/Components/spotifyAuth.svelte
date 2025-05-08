@@ -34,7 +34,16 @@
                 console.error("❌ Error fetching favorite song:", error);
             }
         }
-        
+        setInterval(async () => {
+            try {
+                // 🔄 Refresh token if expired
+                redirectToAuthCodeFlow(clientId);
+                accessToken = await refreshAccessToken(clientId) || accessToken;
+                console.log("🔄 Updated access token:", accessToken);
+            } catch (error) {
+                console.error("❌ Error updating access token", error);
+            }
+        }, 3600000); // Refresh every hour (3600001 ms)
     });
 
     

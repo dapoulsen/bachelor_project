@@ -76,7 +76,7 @@ export async function getAccessToken(clientId: string, code: string): Promise<{ 
 
     // Store both tokens
     Cookies.set("spotify_access_token", data.access_token, { expires: 1 / 24, sameSite: "Strict" }); // Expires in 1 hour
-    Cookies.set("spotify_refresh_token", data.refresh_token, { expires: 30, sameSite: "Strict" }); // Expires in 30 days
+    // Cookies.set("spotify_refresh_token", data.refresh_token, { expires: 30, sameSite: "Strict" }); // Expires in 30 days
 
     return { access_token: data.access_token, refresh_token: data.refresh_token };
 }
@@ -122,19 +122,19 @@ export function getStoredAccessToken(): string | null {
 }
 
 export async function refreshAccessToken(clientId: string): Promise<string | null> {
-    const refreshToken = Cookies.get("spotify_refresh_token");
+    // const refreshToken = Cookies.get("spotify_refresh_token");
 
-    if (!refreshToken) {
-        console.error("❌ No refresh token found. User must log in again.");
-        return null; // User needs to log in again
-    }
+    // if (!refreshToken) {
+    //     console.error("❌ No refresh token found. User must log in again.");
+    //     return null; // User needs to log in again
+    // }
 
     console.log("🔄 Refreshing access token...");
 
     const params = new URLSearchParams();
     params.append("client_id", clientId);
     params.append("grant_type", "refresh_token");
-    params.append("refresh_token", refreshToken);
+    // params.append("refresh_token", refreshToken);
 
     const result = await fetch("https://accounts.spotify.com/api/token", {
         method: "POST",
