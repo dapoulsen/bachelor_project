@@ -143,7 +143,7 @@
             const leaderboard = await getLeaderboard();
             console.log("Leaderboard data:", leaderboard);
             const topSong = leaderboard.list[0].track; // Get the top song from the leaderboard
-            await queueSelectedSong(accessToken, topSong); // Queue the selected song
+            await queueSelectedSong(topSong, accessToken); // Queue the selected song
             const data = await skipSong(accessToken);
             console.log(data);
         }
