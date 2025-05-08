@@ -2,9 +2,8 @@
 
 ## TODO
 
-When adding existing song it should upvote it
-remove song from local storage when played
-
+put adminToken.ts on Redis
+Skrive til fil når brugere interagere - action log
 
 
 Make the code use Strategy patterns - making it modular
