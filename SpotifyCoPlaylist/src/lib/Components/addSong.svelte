@@ -152,19 +152,19 @@
         <ul class="mt-6 space-y-4">
             {#each searchResults.tracks.items as track}
                 {@const isAdded = isTrackAdded(track.id)}
-                <li class="bg-gray-800 p-4 rounded-lg flex items-center space-x-4 shadow-md {isAdded ? 'border border-green-600' : ''}">
+                <li class="bg-gray-800 p-4 rounded-lg flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 shadow-md {isAdded ? 'border border-green-600' : ''}">
                     <img 
                         src={track.album.images[0]?.url} 
                         alt={track.album.name} 
                         class="w-16 h-16 rounded-lg"
                     />
-                    <div>
+                    <div class="flex-1">
                         <p class="text-lg font-semibold">{track.name}</p>
                         <p class="text-gray-400">{track.artists.map(artist => artist.name).join(", ")}</p>
                         <p class="text-sm text-gray-500">{track.album.name}</p>
                     </div>
                     <button 
-                        class="ml-auto bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 {isAdded ? 'opacity-50 cursor-not-allowed' : ''}"
+                        class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 self-start sm:self-center {isAdded ? 'opacity-50 cursor-not-allowed' : ''}"
                         onclick={() => addSongToLeaderboard(track)}
                         disabled={isAdded}
                     >
