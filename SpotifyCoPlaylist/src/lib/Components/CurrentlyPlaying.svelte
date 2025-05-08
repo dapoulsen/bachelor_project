@@ -5,6 +5,7 @@
     import { Tween } from "svelte/motion";
     import { getLeaderboard, getServerAdminToken, removeFromLeaderboard, setCurrentSong } from "$lib/api";
     import { adminToken, refreshToken, tokenReady } from "$lib/adminTokenManager";
+    import { removeVote } from "$lib/voteTracker";
     
     
 
@@ -162,6 +163,9 @@
 
         // Set initial progress immediately
         progress.set(initialProgress, { duration: 0 }); // No animation for the first set
+
+        // remove vote from local storage
+        removeVote(song.id);
 
         console.log(`Starting progress for: ${song.name}`);
 

@@ -60,6 +60,23 @@ export function recordVote(trackId: string, action: 'increment' | 'decrement'): 
   }
 }
 
+export function removeVote(trackId: string): void {
+  try {
+    // Get existing votes
+    const votes = getUserVotes();
+    
+    // Remove the vote for the specified trackId
+    const updatedVotes = votes.filter(vote => vote.trackId !== trackId);
+    
+    // Save back to localStorage
+    localStorage.setItem(VOTE_STORAGE_KEY, JSON.stringify(updatedVotes));
+  } catch (error) {
+    console.error('Error removing vote:', error);
+  }
+} 
+
+
+
 /**
  * Clear all vote history (useful for testing)
  */
