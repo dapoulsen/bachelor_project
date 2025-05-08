@@ -2,9 +2,7 @@
 
 ## TODO
 
-Add close button to vote and add screens
 Add visual when you add a song
-Make skip button skip to next song on leaderboard
 Make session end on dismount
 
 

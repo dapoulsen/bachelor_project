@@ -78,13 +78,17 @@
 
     async function addSongToLeaderboard(track: SpotifyTrack) {
         try {
-            await addToLeaderboard(track);
+
             // Record that the user has voted for this track (as adding is like upvoting)
             recordVote(track.id, 'increment');
+
+            await addToLeaderboard(track);
+            
             if (onSongAdded) {
                 onSongAdded(track);
             }
         } catch (error) {
+            recordVote(track.id, 'decrement'); // Rollback the vote if adding fails
             console.error("Error adding song to leaderboard:", error);
         }
     }
