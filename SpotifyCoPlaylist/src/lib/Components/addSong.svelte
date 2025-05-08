@@ -2,12 +2,11 @@
     import { 
         searchForSong
     } from "$lib/script"
-    import type { VoteRecord } from "$lib/voteTracker"; // Import the VoteRecord type
     import type { SpotifySearchResponse, SpotifyTrack } from '$lib/types';
     import { addToLeaderboard, getServerAdminToken } from "$lib/api";
     import { adminToken, refreshToken, tokenReady } from "$lib/adminTokenManager";
     import { onMount } from "svelte";
-    import { hasVotedForTrack, recordVote, getUserVotes } from "$lib/voteTracker"; // Import vote tracking functions
+    import { hasVotedForTrack, recordVote } from "$lib/voteTracker"; // Import vote tracking functions
 
     let { onSongAdded } = $props<{
         onSongAdded?: (track: SpotifyTrack) => void
@@ -24,28 +23,7 @@
     // Add a reactive state to track which songs have been added
     let addedSongs = $state<Record<string, boolean>>({});
 
-    // Track votes reactively
-    
-    let userVotes = $state<VoteRecord[]>([]);
-
-    // Function to refresh vote status from localStorage
-    function refreshVoteStatus() {
-        userVotes = getUserVotes();
-    }
-
     // Ensure we have a token when component mounts
-    onMount(() => {
-        // Get initial vote status
-        refreshVoteStatus();
-        
-        // Set up an interval to periodically check for vote changes
-        const voteCheckInterval = setInterval(refreshVoteStatus, 2000);
-        
-        return () => {
-            clearInterval(voteCheckInterval);
-        };
-    });
-
     onMount(async () => {
         // If token isn't ready, show a message and try to refresh
         if (!$adminToken) {
@@ -124,7 +102,6 @@
 
     // Modified function to check if a track has been added
     function isTrackAdded(trackId: string): boolean {
-        refreshVoteStatus(); // Get the latest vote status
         return addedSongs[trackId] || hasVotedForTrack(trackId);
     }
 </script>

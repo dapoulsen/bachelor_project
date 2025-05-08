@@ -4,7 +4,7 @@
 
 const VOTE_STORAGE_KEY = 'spotify_coplaylist_votes';
 
-export interface VoteRecord {
+interface VoteRecord {
   trackId: string;
   action: 'increment' | 'decrement';
   timestamp: number;
