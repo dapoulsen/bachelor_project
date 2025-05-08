@@ -15,7 +15,10 @@
     } from "$lib/api";
     import { 
         skipSong,
-        playOrPause
+        playOrPause,
+
+        queueSelectedSong
+
      } from "$lib/script";
     import Cookies from "js-cookie";
     import { tokenReady } from "$lib/adminTokenManager"; 
@@ -137,6 +140,9 @@
 
     async function skip() {
         if (leaderboardState.initialized) {
+            const leaderboard = await getLeaderboard();
+            const topSong = leaderboard.songs[0]; // Get the top song from the leaderboard
+            await queueSelectedSong(accessToken, topSong); // Queue the selected song
             const data = await skipSong(accessToken);
             console.log(data);
         }
