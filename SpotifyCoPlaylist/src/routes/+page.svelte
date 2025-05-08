@@ -176,43 +176,43 @@
     {:else}
         <ul class="mt-6 w-full max-w-3xl space-y-4">
             {#each leaderboardState.list as item}
-                <li class="bg-gray-800 p-4 rounded-lg flex items-center space-x-4 shadow-md {hasVotedForTrack(item.track.id) ? 'border border-gray-600' : ''}">
+                <li class="bg-gray-800 p-4 rounded-lg flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 shadow-md {hasVotedForTrack(item.track.id) ? 'border border-gray-600' : ''}">
                     <img 
                         src={item.track.album.images[0]?.url} 
                         alt={item.track.album.name} 
                         class="w-16 h-16 rounded-lg"
                     />
-                    <div>
+                    <div class="flex-1">
                         <p class="text-lg font-semibold">{item.track.name}</p>
                         <p class="text-gray-400">{item.track.artists.map(artist => artist.name).join(", ")}</p>
                     </div>
-                    <div>
+                    <div class="flex flex-col items-start sm:items-end">
                         <p>Votes: {item.votes}</p>
                         {#if userState.state === 2}
                             {@const userVote = getUserVoteForTrack(item.track.id)}
                             {#if userVote}
                                 <!-- Show what the user voted -->
                                 <p class="text-sm text-gray-400 mb-2">
-                                    You voted: {userVote === 'increment' ? '⬆️ Upvoted' : '⬇️ Downvoted'}
+                                    You voted: {userVote === 'increment' ? '⬆️ Up' : '⬇️ Down'}
                                 </p>
                             {/if}
-                            <div class="inline-flex">
+                            <div class="inline-flex space-x-2">
                                 <button 
                                     id="vote-button-yes"
-                                    class="bg-green-500 hover:bg-green-400 text-white font-bold py-2 px-5 rounded shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-300 space-x-2 {userVote ? 'opacity-50 cursor-not-allowed' : ''}"
+                                    class="bg-green-500 hover:bg-green-400 text-white font-bold py-1 sm:py-2 px-3 sm:px-4 rounded shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-300 {userVote ? 'opacity-50 cursor-not-allowed' : ''}"
                                     onclick={() => handleVote(item.track, 'increment')}
                                     disabled={!!userVote}
                                 >
-                                    ⬆️ <span>Upvote</span>
+                                    ⬆️ <span class="hidden sm:inline">Upvote</span>
                                 </button>
                             
                                 <button 
                                     id="vote-button-no"
-                                    class="bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-5 rounded shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-300 space-x-2 {userVote ? 'opacity-50 cursor-not-allowed' : ''}"
+                                    class="bg-red-500 hover:bg-red-400 text-white font-bold py-1 sm:py-2 px-3 sm:px-4 rounded shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-300 {userVote ? 'opacity-50 cursor-not-allowed' : ''}"
                                     onclick={() => handleVote(item.track, 'decrement')}
                                     disabled={!!userVote}
                                 >
-                                    ⬇️ <span>Downvote</span>
+                                    ⬇️ <span class="hidden sm:inline">Downvote</span>
                                 </button>
                             </div>
                         {/if}
