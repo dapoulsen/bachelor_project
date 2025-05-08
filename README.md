@@ -2,7 +2,6 @@
 
 ## TODO
 
-Add visual when you add a song
 Make session end on dismount
 
 
