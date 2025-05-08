@@ -78,6 +78,8 @@ async function refreshAdminToken(): Promise<void> {
                 console.warn('Failed to get admin token: null returned');
                 return;
             }
+
+            console.log('Token value received:', tokenValue);
             
             // Ensure we're handling a string token
             const tokenStr = typeof tokenValue === 'string' ? tokenValue : 
