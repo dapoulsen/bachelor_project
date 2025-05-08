@@ -20,6 +20,8 @@
         search: ""
     });
 
+    // Add a reactive state to track which songs have been added
+    let addedSongs = $state<Record<string, boolean>>({});
 
     // Ensure we have a token when component mounts
     onMount(async () => {
@@ -78,19 +80,29 @@
 
     async function addSongToLeaderboard(track: SpotifyTrack) {
         try {
-
-            // Record that the user has voted for this track (as adding is like upvoting)
+            // Update local UI state immediately
+            addedSongs[track.id] = true;
+            
+            // Record the vote
             recordVote(track.id, 'increment');
-
+            
+            // Then make the API call
             await addToLeaderboard(track);
             
             if (onSongAdded) {
                 onSongAdded(track);
             }
         } catch (error) {
-            recordVote(track.id, 'decrement'); // Rollback the vote if adding fails
+            // If the API call fails, revert both states
+            delete addedSongs[track.id];
+            recordVote(track.id, 'decrement');
             console.error("Error adding song to leaderboard:", error);
         }
+    }
+
+    // Modified function to check if a track has been added
+    function isTrackAdded(trackId: string): boolean {
+        return addedSongs[trackId] || hasVotedForTrack(trackId);
     }
 </script>
 
@@ -139,7 +151,7 @@
         <!-- Search Results -->
         <ul class="mt-6 space-y-4">
             {#each searchResults.tracks.items as track}
-                {@const isAdded = hasVotedForTrack(track.id)}
+                {@const isAdded = isTrackAdded(track.id)}
                 <li class="bg-gray-800 p-4 rounded-lg flex items-center space-x-4 shadow-md {isAdded ? 'border border-green-600' : ''}">
                     <img 
                         src={track.album.images[0]?.url} 
