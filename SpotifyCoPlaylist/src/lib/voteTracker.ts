@@ -4,7 +4,7 @@
 
 const VOTE_STORAGE_KEY = 'spotify_coplaylist_votes';
 
-interface VoteRecord {
+export interface VoteRecord {
   trackId: string;
   action: 'increment' | 'decrement';
   timestamp: number;
@@ -60,22 +60,30 @@ export function recordVote(trackId: string, action: 'increment' | 'decrement'): 
   }
 }
 
-export function removeVote(trackId: string): void {
+export function removeVote(trackId: string): boolean {
   try {
     // Get existing votes
     const votes = getUserVotes();
+    
+    // Check if the vote exists before trying to remove it
+    const voteExists = votes.some(vote => vote.trackId === trackId);
+    
+    if (!voteExists) {
+      return false; // No vote to remove
+    }
     
     // Remove the vote for the specified trackId
     const updatedVotes = votes.filter(vote => vote.trackId !== trackId);
     
     // Save back to localStorage
     localStorage.setItem(VOTE_STORAGE_KEY, JSON.stringify(updatedVotes));
+    
+    return true; // Successfully removed the vote
   } catch (error) {
     console.error('Error removing vote:', error);
+    return false;
   }
-} 
-
-
+}
 
 /**
  * Clear all vote history (useful for testing)
