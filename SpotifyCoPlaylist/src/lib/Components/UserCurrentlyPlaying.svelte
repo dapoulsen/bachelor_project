@@ -2,6 +2,7 @@
     import { onMount, onDestroy } from "svelte";
     import type { SpotifyTrack } from "$lib/types";
     import { Tween } from "svelte/motion";
+    import { removeVote } from "$lib/voteTracker";
     
     // State for component
     let currentlyPlaying = $state<SpotifyTrack | null>(null);
@@ -40,6 +41,7 @@
             
             const data = await response.json();
             
+            // Check if the response contains a song
             if (data.currentSong) {
                 const newSong = data.currentSong;
                 const newProgress = data.progress_ms || 0;
@@ -51,6 +53,7 @@
                     duration = newSong.duration_ms;
                     startTime = Date.now() - newProgress;
                     progress.set(newProgress, { duration: 0 });
+                    removeVote(newSong.id);
                 }
                 
                 // Update play state

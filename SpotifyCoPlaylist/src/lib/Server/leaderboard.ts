@@ -43,6 +43,11 @@ class LeaderboardState {
             
             // Save updated leaderboard
             await redis.set(this.LEADERBOARD_KEY, JSON.stringify(leaderboard));
+        } else {
+            // Increment votes for existing track
+            existingTrack.votes++;
+            // Save updated leaderboard
+            await redis.set(this.LEADERBOARD_KEY, JSON.stringify(leaderboard));
         }
         
         return this.getStatus();

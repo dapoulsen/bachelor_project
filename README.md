@@ -2,7 +2,9 @@
 
 ## TODO
 
-Make session end on dismount
+When adding existing song it should upvote it
+remove song from local storage when played
+
 
 
 Make the code use Strategy patterns - making it modular
