@@ -2,9 +2,6 @@
 
 ## TODO
 
-Skrive til fil når brugere interagere - action log
-
-
 Make the code use Strategy patterns - making it modular
 
 
