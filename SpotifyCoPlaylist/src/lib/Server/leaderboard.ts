@@ -1,7 +1,6 @@
 import type { SpotifyTrack } from "$lib/types";
 import { Redis } from '@upstash/redis';
 import { env } from '$env/dynamic/private';
-import { json } from "stream/consumers";
 
 // Use SvelteKit's env system or fallback to process.env for serverless environments
 let redisUrl: string;
