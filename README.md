@@ -2,7 +2,6 @@
 
 ## TODO
 
-put adminToken.ts on Redis
 Skrive til fil når brugere interagere - action log
 
 
