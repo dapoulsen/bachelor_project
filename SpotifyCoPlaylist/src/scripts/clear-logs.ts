@@ -3,9 +3,8 @@ import { Redis } from '@upstash/redis';
 /**
  * Script to clear user action logs from Redis
  * Usage: 
- * - npm run clear-logs
- * - npm run clear-logs -- --userId=user123
  * - npm run clear-logs -- --confirm=true
+ * - npm run clear-logs -- --userId=user123 --confirm=true
  */
 async function clearLogs() {
   // Get Redis configuration from environment variables
@@ -27,23 +26,43 @@ async function clearLogs() {
   }
 
   try {
-    // Parse command line arguments
+    // Parse command line arguments - FIXED THIS PART
     const args = process.argv.slice(2).reduce((acc, arg) => {
       if (arg.startsWith('--')) {
-        const [key, value] = arg.substring(2).split('=');
-        acc[key] = value || true;
+        const parts = arg.substring(2).split('=');
+        const key = parts[0];
+        const value = parts.length > 1 ? parts[1] : true;
+        acc[key] = value;
+      } else if (arg === 'true' || arg === 'false') {
+        // Special case for positional boolean values
+        // This might happen with npm run clear-logs -- --confirm true
+        const lastArg = process.argv[process.argv.indexOf(arg) - 1];
+        if (lastArg && lastArg.startsWith('--')) {
+          const key = lastArg.substring(2);
+          acc[key] = arg === 'true';
+        }
       }
       return acc;
     }, {} as Record<string, any>);
 
+    // Special handling for the npm warning about unknown config
+    // Check if there's a positional "confirm" value
+    if (process.argv.includes('--confirm')) {
+      args.confirm = 'true';
+    }
+
     // Get options
     const userId = args.userId;
     const prefix = args.prefix || 'user_action:';
-    const confirmed = args.confirm === 'true';
+    const confirmed = args.confirm === 'true' || args.confirm === true;
+    
+    console.log('Command line arguments received:', args);
+    console.log('Confirm value:', args.confirm, 'Parsed as:', confirmed);
     
     if (!confirmed) {
       console.error('This will permanently delete logs from Redis.');
       console.error('To confirm, add --confirm=true to the command.');
+      console.error('Try: npm run clear-logs -- -- --confirm=true');
       process.exit(1);
     }
     

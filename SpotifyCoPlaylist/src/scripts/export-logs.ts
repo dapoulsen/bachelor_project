@@ -29,11 +29,20 @@ async function exportLogs() {
   }
 
   try {
-    // Parse command line arguments
+    // Parse command line arguments - FIXED THIS PART
     const args = process.argv.slice(2).reduce((acc, arg) => {
       if (arg.startsWith('--')) {
-        const [key, value] = arg.substring(2).split('=');
-        acc[key] = value || true;
+        const parts = arg.substring(2).split('=');
+        const key = parts[0];
+        const value = parts.length > 1 ? parts[1] : true;
+        acc[key] = value;
+      } else {
+        // Handle positional arguments (which might be happening with npm run)
+        // npm run export-logs -- --format=csv passes "csv" as a positional arg
+        // Check if it looks like a format
+        if (arg === 'csv' || arg === 'json') {
+          acc.format = arg;
+        }
       }
       return acc;
     }, {} as Record<string, any>);
@@ -69,23 +78,32 @@ async function exportLogs() {
       console.log(`Found ${actionIds.length} actions total`);
     }
     
-    const logs = [];
+    const logs: LogEntry[] = [];
     
     // Get each log entry
     for (const actionId of actionIds) {
       const logEntryRaw = await redis.get(`${prefix}${actionId}`);
       
       if (logEntryRaw) {
-        logs.push(JSON.parse(logEntryRaw as string));
+        // Parse the log entry if it's a string
+        const logEntry = typeof logEntryRaw === 'string' ? JSON.parse(logEntryRaw) : logEntryRaw;
+        logs.push(logEntry);
       }
     }
     
-    console.log(`Retrieved ${logs.length} valid log entries`);
-
+    // Define the log entry type
+    type LogEntry = {
+      timestamp: string;
+      userId: string;
+      action: string;
+      metadata: Record<string, any>;
+    };
+    
     // Format the output according to requested format
     let output: string;
     
     if (format === 'csv') {
+      console.log('Generating CSV format...');
       // Create CSV format
       const headers = ['timestamp', 'userId', 'action', 'metadata'];
       const rows = logs.map(log => {
@@ -99,6 +117,7 @@ async function exportLogs() {
       
       output = [headers.join(','), ...rows].join('\n');
     } else {
+      console.log('Generating JSON format...');
       // Default to JSON format
       output = JSON.stringify(logs, null, 2);
     }
