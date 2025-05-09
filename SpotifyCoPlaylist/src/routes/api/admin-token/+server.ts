@@ -5,7 +5,7 @@ import type { RequestHandler } from "./$types";
 // Get the admin token
 export const GET: RequestHandler = async () => {
     try {
-        const token = getAdminToken();
+        const token = await getAdminToken();
         console.log('GET admin-token request:', token ? '✅ Token exists' : '❌ No token');
         
         // Always return a properly formatted response
@@ -45,12 +45,12 @@ export const POST: RequestHandler = async ({ request }) => {
         }
         
         console.log('POST admin-token: Setting token:', tokenStr.substring(0, 5) + '...');
-        setAdminToken(tokenStr);
+        await setAdminToken(tokenStr);
         
         // Return the current token to confirm it was set
         return json({ 
             success: true, 
-            token: getAdminToken()
+            token: await getAdminToken()
         });
     } catch (error) {
         console.error('Error in POST admin-token:', error);
@@ -64,7 +64,7 @@ export const POST: RequestHandler = async ({ request }) => {
 // Clear the admin token
 export const DELETE: RequestHandler = async () => {
     try {
-        clearAdminToken();
+        await clearAdminToken();
         console.log('DELETE admin-token: Token cleared');
         return json({ success: true });
     } catch (error) {

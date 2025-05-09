@@ -106,7 +106,6 @@
         
         if (success) {
             console.log("Admin token set successfully on server and client");
-            // No need to call forceSetToken separately - it's handled in setAdminToken
             
             // Wait for next tick to ensure reactivity completes
             await new Promise(resolve => setTimeout(resolve, 0));

@@ -43,7 +43,7 @@
             } catch (error) {
                 console.error("❌ Error updating access token", error);
             }
-        }, 3600000); // Refresh every hour (3600001 ms)
+        }, 3590000); // Refresh every hour (3600001 ms)
     });
 
     

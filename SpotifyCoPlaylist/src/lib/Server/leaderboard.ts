@@ -64,13 +64,6 @@ class LeaderboardState {
             await redis.set(this.STATUS_KEY, JSON.stringify({ initialized: true }));
             console.log("Status key set to initialized: true");
             
-            // Verify the data was stored correctly by reading it back
-            const leaderboardData = await redis.get(this.LEADERBOARD_KEY);
-            const statusData = await redis.get(this.STATUS_KEY);
-            
-            console.log("Verification - Leaderboard data:", leaderboardData);
-            console.log("Verification - Status data:", statusData);
-            
             return this.getStatus();
         } catch (error) {
             console.error("Redis initialization error:", error);
@@ -141,7 +134,6 @@ class LeaderboardState {
     private async getLeaderboardData(): Promise<Array<{ track: SpotifyTrack, votes: number }>> {
         try {
             const data = await redis.get(this.LEADERBOARD_KEY);
-            console.log('LEADERBOARD DATA:', data);
             
             // If data is already an array (auto-parsed by client)
             if (Array.isArray(data)) {
@@ -169,7 +161,6 @@ class LeaderboardState {
     private async getStatusData(): Promise<{ initialized: boolean }> {
         try {
             const data = await redis.get(this.STATUS_KEY);
-            console.log('STATUS DATA:', data);
             
             // Check if data exists and is an object with the initialized property
             if (data && typeof data === 'object' && 'initialized' in data) {

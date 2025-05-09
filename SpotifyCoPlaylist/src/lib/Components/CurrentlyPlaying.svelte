@@ -80,6 +80,8 @@
                 return;
             }
 
+            console.log('updateSong called, current token:', $adminToken);
+
             // Fetch the current track directly from Spotify API
             const spotifyData = await fetchCurrentTrack($adminToken);
             
@@ -238,7 +240,7 @@
         
         // Proceed with initialization
         if ($adminToken) {
-            console.log("Token available, initializing component with:", $adminToken.substring(0, 10) + "...");
+            console.log("Token available, initializing component ...");
             updateSong();
             syncInterval = setInterval(updateSong, 10000);
         } else {

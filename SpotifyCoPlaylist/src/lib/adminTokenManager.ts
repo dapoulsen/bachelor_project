@@ -91,9 +91,7 @@ async function refreshAdminToken(): Promise<void> {
             }
             
             if (tokenStr !== currentToken) {
-                console.log('Token changed, updating from: ',
-                    currentToken ? currentToken.substring(0, 5) + '...' : 'none',
-                    ' to: ', tokenStr.substring(0, 5) + '...');
+                console.log('Token changed, updating...');
                 
                 currentToken = tokenStr;
                 tokenExpiration = Date.now() + 3600 * 1000; // Set expiration 1 hour from now
@@ -123,7 +121,7 @@ export function forceSetToken(token: string): void {
         return;
     }
     
-    console.log('Force setting token to:', token.substring(0, 5) + '...');
+    console.log('Force setting token...');
     currentToken = token;
     
     // Mark the token as ready immediately when manually set
@@ -142,7 +140,7 @@ export async function refreshToken(): Promise<boolean> {
             subscribers.forEach(notify => notify(currentToken));
             // Set the token as ready
             tokenReady.set(true);
-            console.log('Token refreshed and notified subscribers:', currentToken.substring(0, 10) + '...');
+            console.log('Token refreshed and notified subscribers...');
             return true;
         }
         
