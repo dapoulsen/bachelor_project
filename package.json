@@ -1,5 +1,9 @@
 {
   "dependencies": {
     "cookie": "^1.0.2"
+  },
+  "scripts":{
+    "export-logs": "node -r esbuild-register src/scripts/export-logs.ts",
+    "clear-logs": "node -r esbuild-register src/scripts/clear-logs.ts"
   }
 }
