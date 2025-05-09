@@ -6,7 +6,8 @@
     import UserCurrentlyPlaying from "$lib/Components/UserCurrentlyPlaying.svelte";
     import { adminToken } from "$lib/adminTokenManager"; // Import the admin token manager
     import { hasVotedForTrack, recordVote, getUserVoteForTrack } from "$lib/voteTracker"; // Add this import
-    
+    import { logUserAction } from "$lib/clientLogger";
+    import { browser } from "$app/environment";
     
     interface LeaderboardItem {
         track: SpotifyTrack;
@@ -28,6 +29,7 @@
         isActive: false
     });
 
+    let userId = $state<string | null>(null);
 
     async function refreshLeaderboard() {
         if (isRefreshing) return; // Prevent multiple simultaneous refreshes
@@ -56,6 +58,15 @@
     onMount(() => {
         let interval: ReturnType<typeof setInterval>;
 
+        if (browser) {
+            // Use a stored user ID or generate a new one
+            userId = localStorage.getItem('spotify_coplaylist_user_id');
+            if (!userId) {
+                userId = 'user_' + Math.random().toString(36).substring(2, 15);
+                localStorage.setItem('spotify_coplaylist_user_id', userId);
+            }
+        }
+
         refreshLeaderboard();
         
         updateSessionStatus();
@@ -73,9 +84,18 @@
     });
 
     function setState(newState: number) {
+        const oldState = userState.state;
         userState.state = newState;
+        
+        // Log the state change action
+        if (userId) {
+            logUserAction(userId, 'change_view', { 
+                from: oldState, 
+                to: newState,
+                viewName: newState === 0 ? 'main' : newState === 1 ? 'add_song' : 'vote'
+            });
+        }
     }
-
 
     // Add debounce utility
     function debounce<F extends (...args: any[]) => any>(func: F, wait: number): (...args: Parameters<F>) => void {
@@ -114,12 +134,30 @@
     
     // Use the debounced function in your component
     async function handleVote(track: SpotifyTrack, action: 'increment' | 'decrement') {
+        // Log the vote action
+        if (userId) {
+            logUserAction(userId, 'vote', { 
+                trackId: track.id,
+                trackName: track.name,
+                voteType: action 
+            });
+        }
+        
         debouncedVote(track, action);
     }
         
 
     async function handleSongAdded(track:SpotifyTrack) {
         console.log("Song added:", track.name);
+        
+        // Log the add song action
+        if (userId) {
+            logUserAction(userId, 'add_song', { 
+                trackId: track.id,
+                trackName: track.name 
+            });
+        }
+        
         await refreshLeaderboard();
     }
     
