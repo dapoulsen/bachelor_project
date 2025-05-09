@@ -89,6 +89,12 @@ export function removeVote(trackId: string): boolean {
  * Clear all vote history (useful for testing)
  */
 export function clearVoteHistory(): void {
+  //If VOTE_STORAGE_KEY is not set, return early
+  if (!VOTE_STORAGE_KEY) {
+    console.warn('VOTE_STORAGE_KEY is not set. No action taken.');
+    return;
+  }
+  // Clear all votes from localStorage
   localStorage.removeItem(VOTE_STORAGE_KEY);
 }
 

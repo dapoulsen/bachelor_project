@@ -1,0 +1,7 @@
+{"timestamp":"2025-05-09T12:23:11.508Z","userId":"user_5tlg2vt1qfv","action":"change_view","metadata":{"from":0,"to":1,"viewName":"add_song"}}
+{"timestamp":"2025-05-09T12:23:53.169Z","userId":"user_5tlg2vt1qfv","action":"add_song","metadata":{"trackId":"2wBtw8BsIWSOfejZVT8k6z","trackName":"Æteren"}}
+{"timestamp":"2025-05-09T12:23:55.685Z","userId":"user_5tlg2vt1qfv","action":"add_song","metadata":{"trackId":"00Ma3dn1eTeuz8LYEpUXQo","trackName":"Lonely (feat. Artigeardit)"}}
+{"timestamp":"2025-05-09T12:24:31.175Z","userId":"user_5tlg2vt1qfv","action":"change_view","metadata":{"from":1,"to":2,"viewName":"vote"}}
+{"timestamp":"2025-05-09T12:24:34.640Z","userId":"user_5tlg2vt1qfv","action":"change_view","metadata":{"from":2,"to":0,"viewName":"main"}}
+{"timestamp":"2025-05-09T12:29:11.551Z","userId":"user_5tlg2vt1qfv","action":"change_view","metadata":{"from":0,"to":2,"viewName":"vote"}}
+{"timestamp":"2025-05-09T12:29:17.571Z","userId":"user_5tlg2vt1qfv","action":"change_view","metadata":{"from":2,"to":0,"viewName":"main"}}

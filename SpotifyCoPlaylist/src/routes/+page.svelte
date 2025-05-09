@@ -5,7 +5,7 @@
     import { getLeaderboard, voteForTrack, getSessionStatus } from "$lib/api";
     import UserCurrentlyPlaying from "$lib/Components/UserCurrentlyPlaying.svelte";
     import { adminToken } from "$lib/adminTokenManager"; // Import the admin token manager
-    import { hasVotedForTrack, recordVote, getUserVoteForTrack } from "$lib/voteTracker"; // Add this import
+    import { hasVotedForTrack, recordVote, getUserVoteForTrack, clearVoteHistory } from "$lib/voteTracker"; // Add this import
     import { logUserAction } from "$lib/clientLogger";
     import { browser } from "$app/environment";
     
@@ -50,6 +50,9 @@
         try {
             const status = await getSessionStatus();
             sessionStatus.isActive = status;
+            if (!sessionStatus.isActive) {
+                clearVoteHistory(); // Clear vote history when session is active
+            }
         } catch (error) {
             console.error("Error fetching session status:", error);
         }

@@ -23,6 +23,7 @@
      } from "$lib/script";
     import Cookies from "js-cookie";
     import { tokenReady } from "$lib/adminTokenManager"; 
+    import { clearVoteHistory } from "$lib/voteTracker";
 
      //Password protection state
      let passwordVerified = $state(false);
@@ -136,6 +137,8 @@
             start = true; // Set start to true if session is active
         }
         await togglePlay(false); // Ensure the play state is set to false when ending the session
+        //Clear localStorage for votes
+        clearVoteHistory();
     }
 
     async function skip() {
