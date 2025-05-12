@@ -117,6 +117,25 @@ export async function setCurrentSong(song: SpotifyTrack): Promise<SpotifyTrack |
         }
 }
 
+export async function clearCurrentSong(): Promise<boolean> {
+    try {
+        const response = await fetch('/api/currentSong', {
+            method: 'DELETE'
+        });
+        
+        if (!response.ok) {
+            console.error('Failed to clear current song:', response.statusText);
+            return false;
+        }
+        
+        const data = await response.json();
+        return data.success === true;
+    } catch (error) {
+        console.error('Error clearing current song:', error);
+        return false;
+    }
+}
+
 export async function getServerAdminToken() {
     try {
         const response = await fetch('/api/admin-token', {

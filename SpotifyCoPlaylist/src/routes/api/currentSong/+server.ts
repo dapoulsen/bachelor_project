@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { getCurrentSong, setCurrentSong, updateSongProgress, updatePlayingState } from '$lib/Server/currentSong';
+import { getCurrentSong, setCurrentSong, updateSongProgress, updatePlayingState, resetCurrentSong } from '$lib/Server/currentSong';
 import type { RequestHandler } from '@sveltejs/kit';
 
 export const GET: RequestHandler = async () => {
@@ -57,6 +57,24 @@ export const POST: RequestHandler = async ({ request }) => {
         });
     }
 }
+
+// Delete endpoint to clear the current song
+export const DELETE: RequestHandler = async () => {
+    try {
+        await resetCurrentSong();
+        return json({
+            success: true,
+            message: 'Current song cleared'
+        });
+    } catch (error) {
+        console.error('Error in DELETE current-song:', error);
+        return json({
+            success: false,
+            message: 'Server error'
+        });
+    }
+}
+
 
 // Optional: Add PATCH endpoint for updating just progress or playing state
 export const PATCH: RequestHandler = async ({ request }) => {

@@ -24,6 +24,7 @@
     import Cookies from "js-cookie";
     import { tokenReady } from "$lib/adminTokenManager"; 
     import { clearVoteHistory } from "$lib/voteTracker";
+    import { resetCurrentSong } from "$lib/Server/currentSong";
 
      //Password protection state
      let passwordVerified = $state(false);
@@ -139,6 +140,8 @@
         await togglePlay(false); // Ensure the play state is set to false when ending the session
         //Clear localStorage for votes
         clearVoteHistory();
+        // Clear currently playing song
+        await resetCurrentSong();
     }
 
     async function skip() {
