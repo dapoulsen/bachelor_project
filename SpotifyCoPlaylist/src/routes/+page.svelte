@@ -1,5 +1,6 @@
 <script lang="ts">
     import AddSong from "$lib/Components/addSong.svelte";
+    import LastFm from "$lib/Components/lastFm.svelte";
     import type { SpotifyTrack } from "$lib/types";
     import { onMount } from "svelte";
     import { getLeaderboard, voteForTrack, getSessionStatus } from "$lib/api";
@@ -206,7 +207,8 @@
 
     <!-- Dynamic Content -->
     {#if userState.state === 1}
-        <AddSong  onSongAdded={handleSongAdded}/>
+        <!-- <AddSong  onSongAdded={handleSongAdded}/> -->
+         <LastFm onSongAdded={handleSongAdded} />
     {/if}
 
     <!-- Leaderboard -->
