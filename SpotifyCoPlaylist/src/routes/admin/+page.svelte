@@ -13,6 +13,7 @@
         isAdminVerified,
         verifyAdminPassword,
         removeFromLeaderboard,
+        clearCurrentSong
     } from "$lib/api";
     import { 
         skipSong,
@@ -24,7 +25,6 @@
     import Cookies from "js-cookie";
     import { tokenReady } from "$lib/adminTokenManager"; 
     import { clearVoteHistory } from "$lib/voteTracker";
-    import { resetCurrentSong } from "$lib/Server/currentSong";
 
      //Password protection state
      let passwordVerified = $state(false);
@@ -141,7 +141,7 @@
         //Clear localStorage for votes
         clearVoteHistory();
         // Clear currently playing song
-        await resetCurrentSong();
+        await clearCurrentSong();
     }
 
     async function skip() {
