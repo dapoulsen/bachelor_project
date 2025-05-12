@@ -184,16 +184,16 @@
     <!-- Buttons -->
     <div class="flex space-x-4 mb-8">
         <button 
-            class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300"
+            class="bg-green-500 hover:bg-green-600 text-white font-bold py-5 px-8 rounded-lg transition duration-300"
             onclick={() => setState(1)}
         >
-            ➕ Tilføj
+            ➕ Add
         </button>
         <button 
-            class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300"
+            class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-5 px-8 rounded-lg transition duration-300"
             onclick={() => setState(2)}
         >
-            📊 Stem
+            📊 Vote
         </button>
         {#if userState.state !== 0}
             <button 
@@ -219,43 +219,43 @@
     {:else}
         <ul class="mt-6 w-full max-w-3xl space-y-4">
             {#each leaderboardState.list as item}
-                <li class="bg-gray-800 p-4 rounded-lg flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 shadow-md {hasVotedForTrack(item.track.id) ? 'border border-gray-600' : ''}">
+                <li class="bg-gray-800 p-4 rounded-lg flex flex-col items-center sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 shadow-md {hasVotedForTrack(item.track.id) ? 'border border-gray-600' : ''}">
                     <img 
                         src={item.track.album.images[0]?.url} 
                         alt={item.track.album.name} 
                         class="w-16 h-16 rounded-lg"
                     />
-                    <div class="flex-1">
+                    <div class="flex-1 text-center sm:text-left">
                         <p class="text-lg font-semibold">{item.track.name}</p>
                         <p class="text-gray-400">{item.track.artists.map(artist => artist.name).join(", ")}</p>
                     </div>
-                    <div class="flex flex-col items-start sm:items-end">
-                        <p>Votes: {item.votes}</p>
+                    <div class="flex flex-col items-center w-full sm:w-auto sm:items-end">
+                        <p class="text-center mb-3">Votes: {item.votes}</p>
                         {#if userState.state === 2}
                             {@const userVote = getUserVoteForTrack(item.track.id)}
                             {#if userVote}
                                 <!-- Show what the user voted -->
-                                <p class="text-sm text-gray-400 mb-2">
+                                <p class="text-sm text-gray-400 mb-3 text-center">
                                     You voted: {userVote === 'increment' ? '⬆️ Up' : '⬇️ Down'}
                                 </p>
                             {/if}
-                            <div class="inline-flex space-x-2">
+                            <div class="flex space-x-4 justify-center w-full">
                                 <button 
                                     id="vote-button-yes"
-                                    class="bg-green-500 hover:bg-green-400 text-white font-bold py-1 sm:py-2 px-3 sm:px-4 rounded shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-300 {userVote ? 'opacity-50 cursor-not-allowed' : ''}"
+                                    class="bg-green-500 hover:bg-green-400 text-white font-bold py-3 sm:py-2 px-5 sm:px-4 rounded shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-300 text-base sm:text-sm {userVote ? 'opacity-50 cursor-not-allowed' : ''} w-35 sm:w-auto"
                                     onclick={() => handleVote(item.track, 'increment')}
                                     disabled={!!userVote}
                                 >
-                                    ⬆️ <span class="hidden sm:inline">Upvote</span>
+                                    <span>Upvote</span>
                                 </button>
                             
                                 <button 
                                     id="vote-button-no"
-                                    class="bg-red-500 hover:bg-red-400 text-white font-bold py-1 sm:py-2 px-3 sm:px-4 rounded shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-300 {userVote ? 'opacity-50 cursor-not-allowed' : ''}"
+                                    class="bg-red-500 hover:bg-red-400 text-white font-bold py-3 sm:py-2 px-5 sm:px-4 rounded shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-300 text-base sm:text-sm {userVote ? 'opacity-50 cursor-not-allowed' : ''} w-35 sm:w-auto"
                                     onclick={() => handleVote(item.track, 'decrement')}
                                     disabled={!!userVote}
                                 >
-                                    ⬇️ <span class="hidden sm:inline">Downvote</span>
+                                    <span>Downvote</span>
                                 </button>
                             </div>
                         {/if}

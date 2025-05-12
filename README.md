@@ -4,6 +4,8 @@
 
 Make the code use Strategy patterns - making it modular
 
+You could add Placement numbers on leaderboard display
+You could make number 1 stand out
 
 
 ## Getting started
