@@ -80,8 +80,6 @@
                 return;
             }
 
-            console.log('updateSong called, current token:', $adminToken);
-
             // Fetch the current track directly from Spotify API
             const spotifyData = await fetchCurrentTrack($adminToken);
             
