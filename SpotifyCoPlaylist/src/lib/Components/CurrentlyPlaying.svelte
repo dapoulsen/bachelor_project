@@ -59,7 +59,7 @@
                     let track = leaderboardState.list[0].track;
                     console.log("Queueing song:", track.name);
                     await queueSelectedSong(track, $adminToken);
-                    hasAddedSong = true
+                    hasAddedSong = true;
                     await removeFromLeaderboard(track.id);
                     await refreshLeaderboard();            
             } catch (error) {
