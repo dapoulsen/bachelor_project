@@ -172,21 +172,32 @@
 
         // remove vote from local storage
         removeVote(song.id);
+        
+        // Reset the hasAddedSong flag for the new song
+        hasAddedSong = false;
 
         console.log(`Starting progress for: ${song.name}`);
 
+        let queueTriggered = false; // Local flag to prevent multiple calls within the same interval
+
         if (is_playing) {
             updateInterval = setInterval(() => {
-            const elapsed = Date.now() - startTime;
-            if (elapsed >= duration - 5000 && !hasAddedSong) {
-                addToQueue();
-            }
-            if (elapsed <= duration) {
-                progress.set(elapsed); // Update progress bar
-            } else {
-                updateSong();
-            }
-            }, 1000); // Update every second}
+                const elapsed = Date.now() - startTime;
+                
+                // Only trigger queue once when we reach the threshold
+                if (elapsed >= duration - 5000 && !hasAddedSong && !queueTriggered) {
+                    queueTriggered = true; // Set local flag immediately
+                    addToQueue().then(() => {
+                        queueTriggered = false; // Reset local flag after completion
+                    });
+                }
+                
+                if (elapsed <= duration) {
+                    progress.set(elapsed); // Update progress bar
+                } else {
+                    updateSong();
+                }
+            }, 1000); // Update every second
         }
     }
 
