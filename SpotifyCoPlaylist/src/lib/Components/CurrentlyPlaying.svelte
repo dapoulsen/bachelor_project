@@ -19,7 +19,7 @@
     let duration = $state(0);
     let startTime = $state(0);
 
-    let hasAddedSong = false;
+    let hasAddedSong = $state(false);
     //Create a Tween instance to animate the progress bar
     const progress = new Tween(0, { duration: 100});
 
@@ -48,27 +48,33 @@
     }
     
     async function addToQueue() {
-        if (hasAddedSong === false){
-            await refreshLeaderboard(); 
-            if (leaderboardState.list.length > 0){
-                try{
-                    if (!$adminToken) {
-                        console.error("No admin token available. Cannot queue song.");
-                        return;
-                    }
-                    let track = leaderboardState.list[0].track;
-                    console.log("Queueing song:", track.name);
-                    await queueSelectedSong(track, $adminToken);
-                    hasAddedSong = true;
-                    await removeFromLeaderboard(track.id);
-                    await refreshLeaderboard();            
+        if (hasAddedSong) {
+            console.log("Song already added to queue, skipping...");
+            return;
+        }
+        await refreshLeaderboard(); 
+        if (leaderboardState.list.length > 0){
+            try{
+                if (!$adminToken) {
+                    console.error("No admin token available. Cannot queue song.");
+                    return;
+                }
+
+                hasAddedSong = true;
+
+                let track = leaderboardState.list[0].track;
+                console.log("Queueing song:", track.name);
+                await queueSelectedSong(track, $adminToken);
+                
+                await removeFromLeaderboard(track.id);
+                await refreshLeaderboard();            
             } catch (error) {
+                hasAddedSong = false;
                 console.error("Hallo idiot, det virker ikk", error);
             }
         } else {
             console.log("har du overvejet at der skal være sange her");
-        }
-    }   
+        }   
     }
 
 
@@ -172,7 +178,7 @@
         if (is_playing) {
             updateInterval = setInterval(() => {
             const elapsed = Date.now() - startTime;
-            if (elapsed >= duration - 5000){
+            if (elapsed >= duration - 5000 && !hasAddedSong) {
                 addToQueue();
             }
             if (elapsed <= duration) {
