@@ -4,6 +4,11 @@
 
 Make the code use Strategy patterns - making it modular
 
+Make voting buttons always visible[x]
+replace user progress bar with spotifytrack link
+
+Make algorithm for genre - rethink genre based functions
+
 You could add Placement numbers on leaderboard display
 You could make number 1 stand out
 

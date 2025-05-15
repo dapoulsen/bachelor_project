@@ -20,7 +20,7 @@
         initialized: false
     });
 
-    let isRefreshing = false;
+    let isRefreshing = $state(false);
 
     let userState = $state({
         state: 0
@@ -183,26 +183,28 @@
     
     <!-- Buttons -->
     <div class="flex space-x-4 mb-8">
-        <button 
+        {#if userState.state === 0}
+         <button 
             class="bg-green-500 hover:bg-green-600 text-white font-bold py-5 px-8 rounded-lg transition duration-300"
             onclick={() => setState(1)}
+            id="add-button"
         >
             ➕ Add
-        </button>
-        <button 
+        </button>   
+        {:else}
+        <!-- <button 
             class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-5 px-8 rounded-lg transition duration-300"
             onclick={() => setState(2)}
         >
             📊 Vote
-        </button>
-        {#if userState.state !== 0}
+        </button> -->
             <button 
-                class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300"
+                class="bg-red-500  hover:bg-red-600 text-white font-bold py-5 px-8 rounded-lg transition duration-300"
                 onclick={() => setState(0)}
             >
-                Cancel
+                Close
             </button>
-        {/if}
+        {/if} 
     </div>
 
     <!-- Dynamic Content -->
@@ -218,7 +220,8 @@
         <p class="text-gray-400 mt-4">No songs in leaderboard</p>
     {:else}
         <ul class="mt-6 w-full max-w-3xl space-y-4">
-            {#each leaderboardState.list as item}
+            {#each leaderboardState.list as item}   
+            {@const userVote = getUserVoteForTrack(item.track.id)}
                 <li class="bg-gray-800 p-4 rounded-lg flex flex-col items-center sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 shadow-md {hasVotedForTrack(item.track.id) ? 'border border-gray-600' : ''}">
                     <img 
                         src={item.track.album.images[0]?.url} 
@@ -231,8 +234,6 @@
                     </div>
                     <div class="flex flex-col items-center w-full sm:w-auto sm:items-end">
                         <p class="text-center mb-3">Votes: {item.votes}</p>
-                        {#if userState.state === 2}
-                            {@const userVote = getUserVoteForTrack(item.track.id)}
                             {#if userVote}
                                 <!-- Show what the user voted -->
                                 <p class="text-sm text-gray-400 mb-3 text-center">
@@ -258,7 +259,6 @@
                                     <span>Downvote</span>
                                 </button>
                             </div>
-                        {/if}
                     </div>
                 </li>
             {/each}
