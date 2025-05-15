@@ -6,8 +6,8 @@
     
     // State for component
     let currentlyPlaying = $state<SpotifyTrack | null>(null);
-    // let progress_ms = $state(0);
-    // let duration = $state(0);
+    let progress_ms = $state(0);
+    let duration = $state(0);
     let is_playing = $state(false);
     let isLoading = $state(true);
     let error = $state<string | null>(null);
