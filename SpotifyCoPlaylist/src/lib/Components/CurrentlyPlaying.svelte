@@ -193,7 +193,7 @@
                 
                 // Only trigger queue once when we reach the threshold
                 // Added additional guard with queueInProgress to prevent parallel executions
-                if (elapsed >= duration - 5000 && !hasAddedSong && !queueTriggered && !queueInProgress) {
+                if (elapsed >= duration - 8000 && !hasAddedSong && !queueTriggered && !queueInProgress) {
                     queueTriggered = true; // Set flag to prevent further attempts
                     queueInProgress = true; // Set in-progress flag
                     
