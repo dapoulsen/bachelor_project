@@ -52,29 +52,34 @@
             console.log("Song already added to queue, skipping...");
             return;
         }
-        await refreshLeaderboard(); 
-        if (leaderboardState.list.length > 0){
-            try{
+        
+        // Set the flag immediately to prevent parallel calls
+        hasAddedSong = true;
+        
+        try {
+            await refreshLeaderboard(); 
+            
+            if (leaderboardState.list.length > 0) {
                 if (!$adminToken) {
                     console.error("No admin token available. Cannot queue song.");
+                    hasAddedSong = false; // Reset flag on error
                     return;
                 }
 
-                hasAddedSong = true;
-
-                let track = leaderboardState.list[0].track;
+                const track = leaderboardState.list[0].track;
                 console.log("Queueing song:", track.name);
                 await queueSelectedSong(track, $adminToken);
                 
+                // Only remove from leaderboard after successfully queuing
                 await removeFromLeaderboard(track.id);
-                await refreshLeaderboard();            
-            } catch (error) {
-                hasAddedSong = false;
-                console.error("Hallo idiot, det virker ikk", error);
+                await refreshLeaderboard();
+            } else {
+                console.log("No songs available in leaderboard to queue");
             }
-        } else {
-            console.log("har du overvejet at der skal være sange her");
-        }   
+        } catch (error) {
+            console.error("Failed to add song to queue:", error);
+            hasAddedSong = false; // Reset the flag only on error
+        }
     }
 
 
@@ -178,18 +183,36 @@
 
         console.log(`Starting progress for: ${song.name}`);
 
-        let queueTriggered = false; // Local flag to prevent multiple calls within the same interval
+        // Use a closure-scoped variable for this particular song's interval
+        let queueTriggered = false; 
+        let queueInProgress = false;
 
         if (is_playing) {
             updateInterval = setInterval(() => {
                 const elapsed = Date.now() - startTime;
                 
                 // Only trigger queue once when we reach the threshold
-                if (elapsed >= duration - 5000 && !hasAddedSong && !queueTriggered) {
-                    queueTriggered = true; // Set local flag immediately
-                    addToQueue().then(() => {
-                        queueTriggered = false; // Reset local flag after completion
-                    });
+                // Added additional guard with queueInProgress to prevent parallel executions
+                if (elapsed >= duration - 5000 && !hasAddedSong && !queueTriggered && !queueInProgress) {
+                    queueTriggered = true; // Set flag to prevent further attempts
+                    queueInProgress = true; // Set in-progress flag
+                    
+                    console.log("Queue threshold reached, triggering queue addition");
+                    
+                    addToQueue()
+                        .then(() => {
+                            console.log("Queue addition completed");
+                        })
+                        .catch(error => {
+                            console.error("Queue addition failed:", error);
+                            // Only reset the trigger if this exact interval instance is still active
+                            if (updateInterval) {
+                                queueTriggered = false;
+                            }
+                        })
+                        .finally(() => {
+                            queueInProgress = false;
+                        });
                 }
                 
                 if (elapsed <= duration) {
