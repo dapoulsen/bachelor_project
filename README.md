@@ -5,7 +5,7 @@
 Make the code use Strategy patterns - making it modular
 
 Make voting buttons always visible[x]
-replace user progress bar with spotifytrack link
+replace user progress bar with spotifytrack link[x]
 Make "Now Playing" centered on user page
 
 Make algorithm for genre - rethink genre based functions
