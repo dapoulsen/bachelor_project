@@ -298,19 +298,26 @@
 <h1 class="font-bold">Current Track:</h1>
 
 {#if $tokenReady && currentlyPlaying}
-    <div class="flex items-center bg-gray-800 p-4 rounded-lg shadow-lg">
-        <img src="{currentlyPlaying.album.images[0].url}" alt="Album cover" class="w-16 h-16 rounded-lg">
-        <div class="ml-4">
-            <p class="text-xl font-bold">{currentlyPlaying.name}</p>
-            <p class="text-lg">{currentlyPlaying.artists[0].name}</p>
-            
-            <progress value={progress.current} max={duration} class="w-full mt-2"></progress>
-            <div class="flex justify-between text-sm text-gray-400 mt-1">
-                <span>{formatTime(progress.current)}</span>
-                <span>{formatTime(duration)}</span>
-            </div>
-        </div>
+    <!-- Replace the progress bar section with link -->
+<div class="flex items-center bg-gray-800 p-4 rounded-lg shadow-lg">
+    <img src="{currentlyPlaying.album.images[0].url}" alt="Album cover" class="w-16 h-16 rounded-lg">
+    <div class="ml-4">
+        <p class="text-xl font-bold">{currentlyPlaying.name}</p>
+        <p class="text-lg">{currentlyPlaying.artists[0].name}</p>
+        
+        <!-- Replace progress bar with link -->
+        <a 
+            href={currentlyPlaying.external_urls.spotify} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            class="text-green-500 hover:text-green-400 transition-colors mt-2 inline-block"
+        >
+            Open in Spotify →
+        </a>
     </div>
+</div>
+
+<!-- Remove the style section since we don't need progress bar styles anymore -->
 {:else if !$tokenReady}
     <h1 class="text-4xl font-bold mb-6"> Loading player... </h1>
 {:else}

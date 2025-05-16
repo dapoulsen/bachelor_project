@@ -136,23 +136,30 @@
             <p class="text-red-400">{error}</p>
         </div>
     {:else if currentlyPlaying}
-        <div class="bg-gray-800 p-4 rounded-lg flex items-center space-x-4 shadow-md">
-            <img 
-                src={currentlyPlaying.album.images[0]?.url} 
-                alt={currentlyPlaying.album.name} 
-                class="w-16 h-16 rounded-lg"
-            />
-            <div class="flex-1">
-                <p class="text-lg font-semibold">{currentlyPlaying.name}</p>
-                <p class="text-gray-400">{currentlyPlaying.artists.map(artist => artist.name).join(", ")}</p>
-                
-                <progress value={progress.current} max={duration} class="w-full mt-2"></progress>
-                <div class="flex justify-between text-sm text-gray-400 mt-1">
-                    <span>{formatTime(progress.current)}</span>
-                    <span>{formatTime(duration)}</span>
-                </div>
-            </div>
-        </div>
+       <!-- Replace the progress bar section with link -->
+<div class="bg-gray-800 p-4 rounded-lg flex items-center space-x-4 shadow-md">
+    <img 
+        src={currentlyPlaying.album.images[0]?.url} 
+        alt={currentlyPlaying.album.name} 
+        class="w-16 h-16 rounded-lg"
+    />
+    <div class="flex-1">
+        <p class="text-lg font-semibold">{currentlyPlaying.name}</p>
+        <p class="text-gray-400">{currentlyPlaying.artists.map(artist => artist.name).join(", ")}</p>
+        
+        <!-- Replace progress bar with link -->
+        <a 
+            href={currentlyPlaying.external_urls.spotify} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            class="text-green-500 hover:text-green-400 transition-colors mt-2 inline-block"
+        >
+            Open in Spotify →
+        </a>
+    </div>
+</div>
+
+<!-- Remove the style section since we don't need progress bar styles anymore -->
     {:else}
         <div class="p-4 bg-gray-800 rounded-lg text-center">
             <p class="text-gray-400">No track currently playing</p>
