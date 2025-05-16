@@ -239,6 +239,7 @@
     
 
     function stopProgress() {
+        // Clear the progress interval
         if (updateInterval) {
             clearInterval(updateInterval);
             updateInterval = null;
