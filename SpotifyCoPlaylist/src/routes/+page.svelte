@@ -49,11 +49,17 @@
 
     async function updateSessionStatus()  {
         try {
-            const status = await getSessionStatus();
+            let status = await getSessionStatus();
+            if (status === 'active') {
+                status = true;
+            } else {
+                status = false;
+            }
             sessionStatus.isActive = status;
             if (!sessionStatus.isActive) {
                 clearVoteHistory(); // Clear vote history when session is active
             }
+            console.log("Session status: ", sessionStatus.isActive);
         } catch (error) {
             console.error("Error fetching session status:", error);
         }
@@ -173,12 +179,13 @@
     <!-- Header -->
     <h1 class="text-4xl font-bold mb-6"> Music Leaderboard</h1>
 
-    {#if !leaderboardState.initialized}
+    <!-- {#if !leaderboardState.initialized}
         <p class="text-gray-400">Loading...</p>
+    {:else} -->
+
+    {#if !sessionStatus.isActive}
+        <p class="text-white-500 mt-4">Waiting for session to start...</p>
     {:else}
-
-    {#if sessionStatus.isActive}
-
     <UserCurrentlyPlaying />
     
     <!-- Buttons -->
@@ -264,9 +271,7 @@
             {/each}
         </ul>
     {/if}
-    {:else}
-        <p class="text-white mt-4">Waiting for session to start</p>
-    {/if}
+    <!-- {/if} -->
     {/if}
 </main> 
 

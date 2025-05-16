@@ -39,6 +39,7 @@
         initialized: false
     });
     let start = $state(false);
+    let isStarting = $state(false);
     let isPlaying = $state(false);
 
     function handlePlayStateChange(is_playing: boolean) {
@@ -100,6 +101,24 @@
             leaderboardState.initialized = data.initialized;
         }
 
+        try {
+            isStarting = true;
+            await setSessionStatus('active');
+        } catch (error) {
+            console.error("Error starting session:", error);
+            return;
+        } finally {
+            isStarting = false;
+        }
+
+        let sessionStatus = await getSessionStatus(); // Get the session status
+        console.log("Session status ADMIN PAGE: ", sessionStatus);
+        if (sessionStatus === 'active') {
+            start = true;
+        } else {
+            start = false;
+        }
+
         accessToken = Cookies.get("spotify_access_token"); // Retrieve from cookies
         
         // Use the simplified function that handles both server and client
@@ -116,12 +135,7 @@
             return;
         }
         
-        let sessionStatus = await setSessionStatus('active');
-        if (sessionStatus === 'active') {
-            start = true;
-        } else {
-            start = false;
-        }
+        
     }
 
     async function stopSession() {

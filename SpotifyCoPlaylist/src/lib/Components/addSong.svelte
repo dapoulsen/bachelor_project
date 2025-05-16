@@ -115,7 +115,7 @@
     <h1 class="text-3xl font-bold mb-6 text-center">Add Song</h1>
 
     <!-- Search Input -->
-    <div class="flex items-center space-x-2 mb-4">
+    <div  class="flex items-center space-x-2 mb-4">
         <input 
             bind:value={songSearch.search}
             type="text"

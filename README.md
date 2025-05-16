@@ -12,6 +12,7 @@ Make algorithm for genre - rethink genre based functions
 
 You could add Placement numbers on leaderboard display
 You could make number 1 stand out
+Make searching for song happen for every letter instead of having to press search button
 
 
 ## Getting started

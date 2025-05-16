@@ -4,7 +4,7 @@ import { isSessionActive, setSessionStatus } from '$lib/Server/session';
 
 export const GET: RequestHandler = async () => {
     try {
-        const isActive = isSessionActive();
+        const isActive = await isSessionActive();
         console.log('GET session:', isActive ? '✅ Active' : '❌ Inactive');
         
         return json({
@@ -19,10 +19,11 @@ export const GET: RequestHandler = async () => {
 export const POST: RequestHandler = async ({ request }) => {
     try {
         const data = await request.json();
+        console.log('POST session:', data);
 
         if (data && data.session) {
             console.log('POST session: Setting session:', data.session);
-            setSessionStatus(data.session === 'active');
+            await setSessionStatus(data.session === 'active');
         } else {
             console.error('POST session: No session provided');
             return json({
@@ -33,7 +34,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
         return json({
             success: true,
-            session: isSessionActive() ? 'active' : 'inactive'
+            session: await isSessionActive() ? 'active' : 'inactive'
         });
     } catch (error) {
         console.error('Error in POST session:', error);
