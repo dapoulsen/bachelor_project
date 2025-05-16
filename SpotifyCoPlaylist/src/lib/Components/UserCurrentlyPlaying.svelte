@@ -125,7 +125,7 @@
 </script>
 
 <div class="mb-8">
-    <h2 class="text-2xl font-semibold mb-4">Now Playing</h2>
+    <h2 class="text-2xl font-semibold mb-4 text-center">Now Playing</h2>
     
     {#if isLoading}
         <div class="p-4 bg-gray-800 rounded-lg text-center">
