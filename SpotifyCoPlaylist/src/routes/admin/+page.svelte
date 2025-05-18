@@ -13,7 +13,10 @@
         isAdminVerified,
         verifyAdminPassword,
         removeFromLeaderboard,
-        clearCurrentSong
+        clearCurrentSong,
+
+        clearGenreTracker
+
     } from "$lib/api";
     import { 
         skipSong,
@@ -156,6 +159,8 @@
         clearVoteHistory();
         // Clear currently playing song
         await clearCurrentSong();
+        //Clear genreTracker
+        await clearGenreTracker();
     }
 
     async function skip() {
