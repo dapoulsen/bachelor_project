@@ -58,6 +58,23 @@ interface SearchTrackResponse {
     };
 }
 
+// Update the TrackTagsResponse interface to match the actual API response
+export interface TrackTagsResponse {
+    toptags: {
+        '@attr'?: {
+            artist: string;
+            track: string;
+        };
+        artist?: string; // Keep for backward compatibility
+        track?: string; // Keep for backward compatibility
+        tag: Array<{
+            name: string;
+            url: string;
+            count?: number;
+        }>;
+    };
+}
+
 async function fetchLastFmAPI(endpoint: string, method: string, body?: any): Promise<LastFmResponse> {
         const res = await fetch(`https://ws.audioscrobbler.com/2.0/?method=${endpoint}&api_key=${LastFmToken}&format=json`, {
                 method,
@@ -116,14 +133,14 @@ function getSimilarTracksInfo(similarTracks: SimilarTracksResponse): Array<{name
         }));
 }
 
-async function getTrackTags(trackName: string, artistName: string): Promise<LastFmResponse> {
-        const formattedTrackName = encodeURIComponent(trackName);
-        const formattedArtistName = encodeURIComponent(artistName);
-        const response = await fetchLastFmAPI(
-                `track.gettoptags&artist=${formattedArtistName}&track=${formattedTrackName}`,
-                'GET'
-        );
-        return response;
+async function getTrackTags(trackName: string, artistName: string): Promise<TrackTagsResponse> {
+    const formattedTrackName = encodeURIComponent(trackName);
+    const formattedArtistName = encodeURIComponent(artistName);
+    const response = await fetchLastFmAPI(
+            `track.gettoptags&artist=${formattedArtistName}&track=${formattedTrackName}`,
+            'GET'
+    );
+    return response as TrackTagsResponse;
 }
 
 async function getTrackInfo(trackName: string, artistName: string): Promise<LastFmResponse> {
@@ -161,23 +178,3 @@ export {
         searchForTrackLastFm
 };
 
-// Test the functions
-// (async () => {
-//         const trackName = "Shape of You";
-//         const artistName = "Ed Sheeran";
-
-//         const similarTracks = await getLastFmSimilarTrack(trackName, artistName);
-//         console.log("Similar Tracks: ", similarTracks);
-
-//         const similarTrackMatches = getSimilarTrackMatches(similarTracks);
-//         console.log("Similar Track Matches: ", similarTrackMatches);
-
-//         const similarTrackInfo = getSimilarTracksInfo(similarTracks);
-//         console.log("Similar Track Info: ", similarTrackInfo);
-
-//         // const trackTags = await getTrackTags(trackName, artistName);
-//         // console.log("Track Tags: ", trackTags);
-
-//         // const trackInfo = await getTrackInfo(trackName, artistName);
-//         // console.log("Track Info: ", trackInfo);
-// })();

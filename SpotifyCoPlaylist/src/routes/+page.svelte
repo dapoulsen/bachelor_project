@@ -216,8 +216,8 @@
 
     <!-- Dynamic Content -->
     {#if userState.state === 1}
-        <AddSong  onSongAdded={handleSongAdded}/>
-         <!-- <LastFm onSongAdded={handleSongAdded} /> -->
+        <!-- <AddSong  onSongAdded={handleSongAdded}/> -->
+         <LastFm onSongAdded={handleSongAdded} />
     {/if}
 
     <!-- Leaderboard -->

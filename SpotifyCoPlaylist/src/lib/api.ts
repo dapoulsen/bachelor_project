@@ -295,3 +295,64 @@ export function isAdminVerified(): boolean {
 export function clearAdminVerification(): void {
     localStorage.removeItem('adminPasswordVerified');
 }
+
+export async function getGenreTracker() {
+    try {
+        const res = await fetch("api/genreTracker", {
+        method: "GET"
+        });
+
+        console.log('GET genre-tracker:', res);
+        // Check if the response is ok
+        if (!res.ok) {
+            console.error('Failed to fetch genre tracker:', res.statusText);
+            return null;
+        }
+        
+        return await res.json();
+    } catch (error) {
+        console.error('Error fetching genre tracker:', error);
+        return null;
+    }
+}
+
+export async function addVotesToGenreFromTrack(tags: any) {
+    try {
+        console.log('Adding votes to genre:', tags);
+        const res = await fetch("api/genreTracker", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(tags)
+        });
+
+        if (!res.ok) {
+            console.error('Failed to add votes to genre:', res.statusText);
+            return null;
+        }
+        
+        return await res.json();
+    } catch (error) {
+        console.error('Error adding votes to genre:', error);
+        return null;
+    } 
+}
+
+export async function clearGenreTracker() {
+   try {
+        const res = await fetch("api/genreTracker", {
+            method: "DELETE"
+        });
+
+        if (!res.ok) {
+            console.error('Failed to clear genre tracker:', res.statusText);
+            return null;
+        }
+        
+        return await res.json();
+    } catch (error) {
+        console.error('Error clearing genre tracker:', error);
+        return null;
+    } 
+}

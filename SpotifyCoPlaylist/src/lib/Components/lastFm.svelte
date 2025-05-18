@@ -1,10 +1,11 @@
 <script lang=ts>
-    import { getLastFmToken, getLastFmSimilarTrack, getSimilarTracksInfo, searchForTrackLastFm } from "$lib/lastFmApi";
+    import { getLastFmToken, getLastFmSimilarTrack, getSimilarTracksInfo, searchForTrackLastFm, getTrackTags } from "$lib/lastFmApi";
     import { searchForSong } from "$lib/script";
-    import { addToLeaderboard } from "$lib/api";
-    import { adminToken } from "$lib/adminTokenManager";
+    import { addToLeaderboard, addVotesToGenreFromTrack, getGenreTracker, voteForTrack } from "$lib/api";
+    import { adminToken, refreshToken } from "$lib/adminTokenManager";
     import { recordVote } from "$lib/voteTracker";
     import type { SpotifyTrack } from "$lib/types";
+    import { onMount } from "svelte";
     
     const lastFmToken = getLastFmToken();
     
@@ -18,6 +19,24 @@
     let searchError = $state<string | null>(null);
     let processingTrack = $state<string | null>(null);
     let addedTracks = $state<string[]>([]);
+
+    onMount(async () => {
+        // If token isn't ready, show a message and try to refresh
+        if (!$adminToken) {
+            console.log("AddSong: No token on mount - attempting refresh...");
+            await refreshToken();
+            
+            // Wait for the token to be ready or timeout after a few tries
+            let attempts = 0;
+            const maxAttempts = 10;
+            
+            while (!$adminToken && attempts < maxAttempts) {
+                console.log(`AddSong: Waiting for token (attempt ${attempts + 1}/${maxAttempts})...`);
+                await new Promise(resolve => setTimeout(resolve, 500));
+                attempts++;
+            }
+        }
+    });
 
     async function searchLastFm() {
         if (!searchQuery.trim()) {
@@ -49,7 +68,7 @@
         }
     }
 
-    async function addTrackAndSimilar(track: any) {
+    async function addTrack(track: any) {
         if (!$adminToken) {
             searchError = "Not connected to Spotify API";
             return;
@@ -57,91 +76,87 @@
         
         processingTrack = track.name;
         searchError = null;
-        
-        try {
-            // First, find the selected track in Spotify
-            const spotifySearchResponse = await searchForSong($adminToken, `${track.name} ${track.artist}`);
-            
-            if (!spotifySearchResponse || spotifySearchResponse.tracks.items.length === 0) {
-                throw new Error(`Could not find "${track.name}" on Spotify`);
-            }
-            
-            // Get the main track
-            const mainTrack = spotifySearchResponse.tracks.items[0];
-            
-            // Record the track as being processed to prevent duplicate adds
-            addedTracks = [...addedTracks, mainTrack.id];
-            
-            // Add the main track to the leaderboard
-            await addToLeaderboard(mainTrack);
-            recordVote(mainTrack.id, 'increment');
-            
-            // Notify parent component
-            onSongAdded(mainTrack);
-            
-            // Get similar tracks from Last.fm
-            const similarTracksResponse = await getLastFmSimilarTrack(track.name, track.artist);
-            
-            // Check if we have any similar tracks
-            if (!similarTracksResponse?.similartracks?.track || 
-                !Array.isArray(similarTracksResponse.similartracks.track) || 
-                similarTracksResponse.similartracks.track.length === 0) {
-                
-                // We successfully added the main track but no similar tracks found
-                searchError = `Added "${track.name}" but no similar tracks were found for this song`;
-                return;
-            }
-            
-            const similarTracks = getSimilarTracksInfo(similarTracksResponse);
-            
-            // Add up to 2 similar tracks that aren't already in the list
-            let addedSimilarCount = 0;
-            
-            for (const similarTrack of similarTracks) {
-                if (addedSimilarCount >= 2) break;
-                
-                // Don't add tracks that are too similar in name to the main track
-                if (similarTrack.name.toLowerCase() === track.name.toLowerCase()) continue;
-                
-                // Search for the similar track on Spotify
-                const similarSpotifySearchResponse = await searchForSong(
-                    $adminToken, 
-                    `${similarTrack.name} ${similarTrack.artist}`
-                );
-                
-                if (similarSpotifySearchResponse?.tracks.items.length > 0) {
-                    const similarSpotifyTrack = similarSpotifySearchResponse.tracks.items[0];
-                    
-                    // Skip if we've already added this track
-                    if (addedTracks.includes(similarSpotifyTrack.id)) continue;
-                    
-                    // Add to our tracking list
-                    addedTracks = [...addedTracks, similarSpotifyTrack.id];
-                    
-                    // Add to leaderboard without a vote
-                    await addToLeaderboard(similarSpotifyTrack);
-                    
-                    // Notify parent component
-                    onSongAdded(similarSpotifyTrack);
-                    
-                    addedSimilarCount++;
-                }
-            }
-            
-            // If we went through all similar tracks but couldn't add any
-            if (addedSimilarCount === 0) {
-                searchError = `Added "${track.name}" but couldn't find any similar tracks on Spotify`;
-            }
-            
-        } catch (error: unknown) {
-            console.error("Error adding tracks:", error);
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            searchError = `Failed to add "${track.name}": ${errorMessage}`;
-        } finally {
-            processingTrack = null;
-        }
+        //Add track tags to genreTracker
+        await addTrackTagsToGenreTracker(track);
+        //Add track to leaderboard
+        await addTrackToLeaderboard(track);
+        //Add genre votes to leaderboard votes
+        await addVotesFromGenre(track);
+
+        processingTrack = null;
     }
     
+    async function addTrackTagsToGenreTracker(track: any) {
+        const trackTags = await getTrackTags(track.name, track.artist);
+        await addVotesToGenreFromTrack(trackTags);
+    }
+
+    async function addTrackToLeaderboard(track: any) {
+       try {
+            const spotifyTrack = await convertTrackToSpotify(track);
+            await addToLeaderboard(spotifyTrack); 
+            addedTracks.push(track.name.toString());
+            onSongAdded(spotifyTrack);
+        } catch (error) {
+            console.error("Error adding track to leaderboard:", error);
+            searchError = "Failed to add track to leaderboard. Please try again.";
+        }
+    }
+
+    async function addVotesFromGenre(track: any) {
+        try {
+            const trackTagsResponse = await getTrackTags(track.name, track.artist);
+            const genreTracker = await getGenreTracker();
+            console.log("Genre Tracker:", genreTracker);
+
+            // Get the most popular genre by genreTracker votes
+            let genreVotes = genreTracker.genreTracker.map((genre: any) => {
+                return {
+                    name: genre.genre,
+                    votes: genre.votes
+                };
+            });
+            console.log("Genre Votes:", genreVotes);
+            //check which track tag matches the genreTracker
+            const matchingGenres = genreVotes.filter((genre: any) => {
+                return trackTagsResponse.toptags.tag.some((tag: any) => tag.name === genre.name);
+            });
+            console.log("Matching Genres:", matchingGenres);
+            // Reduce to the track tag with the most votes
+            const mostPopularGenre = matchingGenres.reduce((prev: any, current: any) => {
+                return (prev.votes > current.votes) ? prev : current;
+            });
+            console.log("Most Popular Genre:", mostPopularGenre);
+
+            const spotifyTrack = await convertTrackToSpotify(track);
+            // Check if the genre has more than 1 vote
+            if (mostPopularGenre.votes > 1) {
+                for (let i = 0; i < mostPopularGenre.votes; i++) {
+                    await voteForTrack(spotifyTrack.id, "increment")
+                }
+            }
+        } catch (error) {
+            console.error("Error adding votes from genre:", error);
+            searchError = "Failed to add votes from genre. Please try again.";
+        }
+    }
+
+    async function convertTrackToSpotify(track: any): Promise<SpotifyTrack> {
+        const trackName = track.name;
+        const trackArtist = track.artist;
+        let searchText = `${trackName} - ${trackArtist}`;
+        console.log("Search Text:", searchText);
+        //Search for track on Spotify
+        const spotifySearch = await searchForSong($adminToken, searchText);
+        console.log("Spotify Track:", spotifySearch.tracks.items[0]);
+        const spotifyTrack = spotifySearch.tracks.items[0];
+        if (!spotifyTrack) {
+            throw new Error("No track found on Spotify");
+        } else {
+            return spotifyTrack;
+        }
+    }
+
     function closeSearch() {
         searchResults = [];
         searchQuery = "";
@@ -152,7 +167,7 @@
     <h1 class="text-3xl font-bold mb-6 text-center">Search with Last.fm</h1>
     
     <div class="mb-4 text-sm text-gray-400">
-        Find tracks on Last.fm and add them plus similar songs to the leaderboard
+        Find tracks on Last.fm and add track to leaderboard and vote for genres.
     </div>
     
     <!-- Search Input -->
@@ -183,7 +198,7 @@
             class="bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-transform transform hover:scale-105 mb-4"
             onclick={closeSearch}
         >
-            ❌ Close Results
+            Close Results
         </button>
         
         <ul class="mt-4 space-y-4">
@@ -207,7 +222,7 @@
                     </div>
                     <button 
                         class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 self-start sm:self-center"
-                        onclick={() => addTrackAndSimilar(track)}
+                        onclick={() => addTrack(track)}
                         disabled={processingTrack === track.name || addedTracks.includes(track.name)}
                     >
                         {#if processingTrack === track.name}
@@ -215,7 +230,7 @@
                         {:else if addedTracks.includes(track.name)}
                             ✓ Added
                         {:else}
-                            ➕ Add + Similar
+                            ➕ Add + Vote for Genre
                         {/if}
                     </button>
                 </li>
