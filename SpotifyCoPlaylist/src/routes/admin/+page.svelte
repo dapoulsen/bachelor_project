@@ -14,9 +14,9 @@
         verifyAdminPassword,
         removeFromLeaderboard,
         clearCurrentSong,
-
-        clearGenreTracker
-
+        setSessionType,
+        clearGenreTracker,
+        clearSessionType
     } from "$lib/api";
     import { 
         skipSong,
@@ -44,6 +44,7 @@
     let start = $state(false);
     let isStarting = $state(false);
     let isPlaying = $state(false);
+    let sessionType = $state(''); // Default session type
 
     function handlePlayStateChange(is_playing: boolean) {
         isPlaying = is_playing;
@@ -148,12 +149,7 @@
             leaderboardState.initialized = data.initialized;
             await clearServerAdminToken(); // Clear the admin token when session ends
         }
-        let sessionStatus = await setSessionStatus('inactive'); // Set the session status to false
-        if (sessionStatus === 'inactive') {
-            start = false; // Set start to false if session is inactive
-        } else {
-            start = true; // Set start to true if session is active
-        }
+        
         await togglePlay(false); // Ensure the play state is set to false when ending the session
         //Clear localStorage for votes
         clearVoteHistory();
@@ -161,6 +157,16 @@
         await clearCurrentSong();
         //Clear genreTracker
         await clearGenreTracker();
+        //Clear session type¨
+        sessionType = '';
+        await clearSessionType();
+
+        let sessionStatus = await setSessionStatus('inactive'); // Set the session status to false
+        if (sessionStatus === 'inactive') {
+            start = false; // Set start to false if session is inactive
+        } else {
+            start = true; // Set start to true if session is active
+        }
     }
 
     async function skip() {
@@ -181,6 +187,12 @@
             console.log(data);
             isPlaying = !is_playing; // Toggle the play state
         }
+    }
+
+    async function updateSessionType(type: 'normal' | 'genre') {
+        sessionType = type;
+        console.log("Session type set to:", sessionType);
+        await setSessionType(type);
     }
 
 </script>
@@ -218,7 +230,22 @@
 
     <SpotifyAuth />
 
+
     <main class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 to-black p-8 text-white">
+
+    {#if sessionType === ''}
+        <h1 class="text-3xl font-bold mb-4">Select Session Type</h1>
+        <div class="flex space-x-4">
+            <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300"
+            onclick={() => updateSessionType('normal')}>
+                Normal Session
+            </button>
+            <button class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300"
+            onclick={() => updateSessionType('genre')}>
+                Genre Session
+            </button>
+        </div>
+    {:else}
         {#if !start}
             <button id="start-button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300"
             onclick={() => startSession()}>
@@ -245,6 +272,6 @@
                 End Session
             </button>
         {/if}
-        
+    {/if}    
     </main>
 {/if}

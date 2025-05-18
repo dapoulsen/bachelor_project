@@ -253,7 +253,66 @@ export async function setSessionStatus(session: 'active' | 'inactive') {
     }
 }
 
+export async function getSessionType() {
+    try {
+        const response = await fetch('/api/session/type', {
+            method: 'GET'
+        });
+        
+        if (!response.ok) {
+            console.error('Failed to get session type:', response.statusText);
+            return null;
+        }
+        
+        const data = await response.json();
+        return data.sessionType || null;
+    } catch (error) {
+        console.error('Error getting session type:', error);
+        return null;
+    }
+}
 
+export async function setSessionType(sessionType: 'normal' | 'genre'){
+    try {
+        const response = await fetch('/api/session/type', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ sessionType })
+        });
+        
+        if (!response.ok) {
+            console.error('Failed to set session type:', response.statusText);
+            return null;
+        }
+        
+        const data = await response.json();
+        return data.sessionType || null;
+    } catch (error) {
+        console.error('Error setting session type:', error);
+        return null;
+    }
+}
+
+export async function clearSessionType() {
+    try {
+        const response = await fetch('/api/session/type', {
+            method: 'DELETE'
+        });
+        
+        if (!response.ok) {
+            console.error('Failed to clear session type:', response.statusText);
+            return null;
+        }
+        
+        const data = await response.json();
+        return data.success === true;
+    } catch (error) {
+        console.error('Error clearing session type:', error);
+        return null;
+    }
+}
 
 /**
  * Verify the admin password with the server

@@ -3,7 +3,7 @@
     import LastFm from "$lib/Components/lastFm.svelte";
     import type { SpotifyTrack } from "$lib/types";
     import { onMount } from "svelte";
-    import { getLeaderboard, voteForTrack, getSessionStatus } from "$lib/api";
+    import { getLeaderboard, voteForTrack, getSessionStatus, getSessionType } from "$lib/api";
     import UserCurrentlyPlaying from "$lib/Components/UserCurrentlyPlaying.svelte";
     import { adminToken } from "$lib/adminTokenManager"; // Import the admin token manager
     import { hasVotedForTrack, recordVote, getUserVoteForTrack, clearVoteHistory } from "$lib/voteTracker"; // Add this import
@@ -29,6 +29,8 @@
     let sessionStatus = $state({
         isActive: false
     });
+
+    let sessionType = $state('');
 
     let userId = $state<string | null>(null);
 
@@ -56,6 +58,8 @@
                 status = false;
             }
             sessionStatus.isActive = status;
+            sessionType = await getSessionType();
+            console.log("Session type: ", sessionType);
             if (!sessionStatus.isActive) {
                 clearVoteHistory(); // Clear vote history when session is active
             }
@@ -216,8 +220,11 @@
 
     <!-- Dynamic Content -->
     {#if userState.state === 1}
-        <!-- <AddSong  onSongAdded={handleSongAdded}/> -->
-         <LastFm onSongAdded={handleSongAdded} />
+        {#if sessionType === 'normal'}
+            <AddSong  onSongAdded={handleSongAdded}/>
+        {:else if sessionType === 'genre'}
+            <LastFm onSongAdded={handleSongAdded} />
+        {/if}
     {/if}
 
     <!-- Leaderboard -->
