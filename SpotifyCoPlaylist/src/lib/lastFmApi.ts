@@ -137,6 +137,16 @@ async function getTrackTags(trackName: string, artistName: string): Promise<Trac
     const formattedTrackName = encodeURIComponent(trackName);
     const formattedArtistName = encodeURIComponent(artistName);
     const response = await fetchLastFmAPI(
+            `track.getTags&artist=${formattedArtistName}&track=${formattedTrackName}`,
+            'GET'
+    );
+    return response as TrackTagsResponse;
+}
+
+async function getTrackTopTags(trackName: string, artistName: string): Promise<TrackTagsResponse> {
+    const formattedTrackName = encodeURIComponent(trackName);
+    const formattedArtistName = encodeURIComponent(artistName);
+    const response = await fetchLastFmAPI(
             `track.gettoptags&artist=${formattedArtistName}&track=${formattedTrackName}`,
             'GET'
     );
@@ -174,6 +184,7 @@ export {
         getSimilarTrackMatches,
         getSimilarTracksInfo,
         getTrackTags,
+        getTrackTopTags,
         getTrackInfo,
         searchForTrackLastFm
 };

@@ -1,5 +1,5 @@
 <script lang=ts>
-    import { getLastFmToken, getLastFmSimilarTrack, getSimilarTracksInfo, searchForTrackLastFm, getTrackTags } from "$lib/lastFmApi";
+    import { getLastFmToken, getLastFmSimilarTrack, getSimilarTracksInfo, searchForTrackLastFm, getTrackTopTags } from "$lib/lastFmApi";
     import { searchForSong } from "$lib/script";
     import { addToLeaderboard, addVotesToGenreFromTrack, getGenreTracker, voteForTrack } from "$lib/api";
     import { adminToken, refreshToken } from "$lib/adminTokenManager";
@@ -87,7 +87,7 @@
     }
     
     async function addTrackTagsToGenreTracker(track: any) {
-        const trackTags = await getTrackTags(track.name, track.artist);
+        const trackTags = await getTrackTopTags(track.name, track.artist);
         await addVotesToGenreFromTrack(trackTags);
     }
 
@@ -105,7 +105,7 @@
 
     async function addVotesFromGenre(track: any) {
         try {
-            const trackTagsResponse = await getTrackTags(track.name, track.artist);
+            const trackTagsResponse = await getTrackTopTags(track.name, track.artist);
             const genreTracker = await getGenreTracker();
             console.log("Genre Tracker:", genreTracker);
 
