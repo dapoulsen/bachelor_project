@@ -6,9 +6,13 @@ Make the code use Strategy patterns - making it modular
 
 Make voting buttons always visible[x]
 replace user progress bar with spotifytrack link[x]
-Make "Now Playing" centered on user page
+Make "Now Playing" centered on user page [x]
+
 
 Make algorithm for genre - rethink genre based functions
+Make leaderboardvotes update on song added in genre
+Fix or remove last.fm images on search in genre
+
 
 You could add Placement numbers on leaderboard display
 You could make number 1 stand out
