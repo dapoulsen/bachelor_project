@@ -1,6 +1,6 @@
 <script lang="ts">
     import AddSong from "$lib/Components/addSong.svelte";
-    import LastFm from "$lib/Components/lastFm.svelte";
+    import GenreAdd from "$lib/Components/genreAdd.svelte";
     import type { SpotifyTrack } from "$lib/types";
     import { onMount } from "svelte";
     import { getLeaderboard, voteForTrack, getSessionStatus, getSessionType } from "$lib/api";
@@ -176,7 +176,7 @@
         {#if sessionType === 'normal'}
             <AddSong  onSongAdded={handleSongAdded}/>
         {:else if sessionType === 'genre'}
-            <LastFm onSongAdded={handleSongAdded} />
+            <GenreAdd onSongAdded={handleSongAdded} />
         {/if}
     {/if}
 

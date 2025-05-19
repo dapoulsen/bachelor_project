@@ -3,7 +3,7 @@
     import { searchForSong } from "$lib/script";
     import { addToLeaderboard, addVotesToGenreFromTrack, addVotesToLeaderboard, getGenreTracker, voteForTrack } from "$lib/api";
     import { adminToken, refreshToken } from "$lib/adminTokenManager";
-    import { recordVote } from "$lib/voteTracker";
+    import { recordVote, hasVotedForTrack } from "$lib/voteTracker";  // Add hasVotedForTrack
     import type { SpotifyTrack } from "$lib/types";
     import { onMount } from "svelte";
     
@@ -19,6 +19,8 @@
     let searchError = $state<string | null>(null);
     let processingTrack = $state<string | null>(null);
     let addedTracks = $state<string[]>([]);
+    // Track the IDs of Spotify tracks that have been added
+    let addedSpotifyIds = $state<string[]>([]);
 
     onMount(async () => {
         // If token isn't ready, show a message and try to refresh
@@ -76,14 +78,37 @@
         
         processingTrack = track.name;
         searchError = null;
-        //Add track tags to genreTracker
-        await addTrackTagsToGenreTracker(track);
-        //Add track to leaderboard
-        await addTrackToLeaderboard(track);
-        //Add genre votes to leaderboard votes
-        await addVotesFromGenre(track);
-
-        processingTrack = null;
+        
+        try {
+            // First convert to Spotify track to get the ID
+            const spotifyTrack = await convertTrackToSpotify(track);
+            
+            // Check if user has already voted for this track
+            if (hasVotedForTrack(spotifyTrack.id) || addedSpotifyIds.includes(spotifyTrack.id)) {
+                console.log(`User already voted for track ${spotifyTrack.id}`);
+                addedTracks.push(track.name);
+                addedSpotifyIds.push(spotifyTrack.id);
+                return;
+            }
+            
+            //Add track tags to genreTracker
+            await addTrackTagsToGenreTracker(track);
+            //Add track to leaderboard
+            await addTrackToLeaderboard(track, spotifyTrack);
+            //Add genre votes to leaderboard votes
+            await addVotesFromGenre(track, spotifyTrack);
+            
+            // Record the user's vote for this track
+            recordVote(spotifyTrack.id, 'increment');
+            
+            // Add to tracked IDs
+            addedSpotifyIds.push(spotifyTrack.id);
+        } catch (error) {
+            console.error("Error adding track:", error);
+            searchError = "Failed to add track. Please try again.";
+        } finally {
+            processingTrack = null;
+        }
     }
     
     async function addTrackTagsToGenreTracker(track: any) {
@@ -91,9 +116,8 @@
         await addVotesToGenreFromTrack(trackTags);
     }
 
-    async function addTrackToLeaderboard(track: any) {
+    async function addTrackToLeaderboard(track: any, spotifyTrack: SpotifyTrack) {
        try {
-            const spotifyTrack = await convertTrackToSpotify(track);
             await addToLeaderboard(spotifyTrack); 
             addedTracks.push(track.name.toString());
             onSongAdded(spotifyTrack);
@@ -103,7 +127,7 @@
         }
     }
 
-    async function addVotesFromGenre(track: any) {
+    async function addVotesFromGenre(track: any, spotifyTrack: SpotifyTrack) {
         try {
             const trackTagsResponse = await getTrackTopTags(track.name, track.artist);
             const genreTracker = await getGenreTracker();
@@ -122,13 +146,17 @@
                 return trackTagsResponse.toptags.tag.some((tag: any) => tag.name === genre.name);
             });
             console.log("Matching Genres:", matchingGenres);
+            
+            if (matchingGenres.length === 0) {
+                console.log("No matching genres found");
+                return;
+            }
+            
             // Reduce to the track tag with the most votes
             const mostPopularGenre = matchingGenres.reduce((prev: any, current: any) => {
                 return (prev.votes > current.votes) ? prev : current;
-            });
+            }, { votes: 0 });
             console.log("Most Popular Genre:", mostPopularGenre);
-
-            const spotifyTrack = await convertTrackToSpotify(track);
 
             // Add votes to the genre from the track
             await addVotesToLeaderboard(spotifyTrack.id, mostPopularGenre.votes);
@@ -157,6 +185,11 @@
     function closeSearch() {
         searchResults = [];
         searchQuery = "";
+    }
+    
+    // Function to check if a track has been added or voted for
+    function isTrackAdded(trackName: string): boolean {
+        return addedTracks.includes(trackName);
     }
 </script>
 
@@ -200,7 +233,8 @@
         
         <ul class="mt-4 space-y-4">
             {#each searchResults as track}
-                <li class="bg-gray-800 p-4 rounded-lg flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 shadow-md">
+                {@const isAdded = isTrackAdded(track.name)}
+                <li class="bg-gray-800 p-4 rounded-lg flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 shadow-md {isAdded ? 'border border-green-600' : ''}">
                     {#if track.image && track.image.length > 0}
                         <img 
                             src={track.image.find((img: { size: string; }) => img.size === "large")?.["#text"] || track.image[0]["#text"]} 
@@ -218,13 +252,13 @@
                         <p class="text-sm text-gray-500">Listeners: {track.listeners}</p>
                     </div>
                     <button 
-                        class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 self-start sm:self-center"
+                        class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 self-start sm:self-center {isAdded ? 'opacity-50 cursor-not-allowed' : ''}"
                         onclick={() => addTrack(track)}
-                        disabled={processingTrack === track.name || addedTracks.includes(track.name)}
+                        disabled={processingTrack === track.name || isAdded}
                     >
                         {#if processingTrack === track.name}
                             ⏳ Adding...
-                        {:else if addedTracks.includes(track.name)}
+                        {:else if isAdded}
                             ✓ Added
                         {:else}
                             ➕ Add + Vote for Genre

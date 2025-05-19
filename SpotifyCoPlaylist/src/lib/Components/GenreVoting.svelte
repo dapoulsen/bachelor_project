@@ -12,8 +12,8 @@
         refreshLeaderboard: () => Promise<void>;
     }>();
     
-    const userVote = getUserVoteForTrack(track.id);
-
+    // Make userVote reactive so it updates when the vote changes
+    let userVote = $state(getUserVoteForTrack(track.id));
     let processingVote = $state(false);
     let processingGenres = $state(false);
     
@@ -44,6 +44,8 @@
             
             if (result) {
                 recordVote(track.id, action);
+                // Update the userVote state to reflect the new vote
+                userVote = action;
                 console.log('Vote recorded locally');
                 
                 // For upvotes, add additional genre-based votes
