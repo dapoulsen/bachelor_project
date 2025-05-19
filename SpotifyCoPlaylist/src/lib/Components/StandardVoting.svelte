@@ -5,11 +5,15 @@
     import { logUserAction } from "$lib/clientLogger";
     import VoteButton from "./VoteButton.svelte";
 
-    export let track: SpotifyTrack;
-    export let userId: string | null;
-    export let refreshLeaderboard: () => Promise<void>;
+    const { track, userId, refreshLeaderboard } = $props<{
+        track: SpotifyTrack;
+        userId: string | null;
+        refreshLeaderboard: () => Promise<void>;
+    }>();
 
     const userVote = getUserVoteForTrack(track.id);
+
+    let processingVote = $state(false);
 
     // Add debounce utility
     function debounce<F extends (...args: any[]) => any>(func: F, wait: number): (...args: Parameters<F>) => void {
@@ -30,6 +34,8 @@
                 return;
             }
             
+            processingVote = true;
+            
             console.log(`Voting ${action} for track ${track.id}`);
             const result = await voteForTrack(track.id, action);
             
@@ -40,6 +46,8 @@
             }
         } catch (error) {
             console.error('Error in handleVote:', error);
+        } finally {
+            processingVote = false;
         }
     }, 300); // 300ms debounce
     
@@ -71,7 +79,15 @@
     }
 </script>
 
+<div class="flex flex-col items-center w-full mb-2">
+    {#if processingVote}
+        <div class="text-sm text-yellow-400 font-medium animate-pulse">
+            Voting...
+        </div>
+    {/if}
+</div>
+
 <div class="flex space-x-4 justify-center w-full">
-    <VoteButton track={track} action="increment" userVote={userVote} onClick={handleUpvote} />
-    <VoteButton track={track} action="decrement" userVote={userVote} onClick={handleDownvote} />
+    <VoteButton track={track} action="increment" userVote={userVote} onClick={handleUpvote} disabled={processingVote} />
+    <VoteButton track={track} action="decrement" userVote={userVote} onClick={handleDownvote} disabled={processingVote} />
 </div>

@@ -6,11 +6,16 @@
     import { getTrackTags, getTrackTopTags } from "$lib/lastFmApi";
     import VoteButton from "./VoteButton.svelte";
 
-    export let track: SpotifyTrack;
-    export let userId: string | null;
-    export let refreshLeaderboard: () => Promise<void>;
-
+    const { track, userId, refreshLeaderboard } = $props<{
+        track: SpotifyTrack;
+        userId: string | null;
+        refreshLeaderboard: () => Promise<void>;
+    }>();
+    
     const userVote = getUserVoteForTrack(track.id);
+
+    let processingVote = $state(false);
+    let processingGenres = $state(false);
     
     // Add debounce utility
     function debounce<F extends (...args: any[]) => any>(func: F, wait: number): (...args: Parameters<F>) => void {
@@ -30,6 +35,8 @@
                 console.log(`User already voted for track ${track.id}`);
                 return;
             }
+
+            processingVote = true;
             
             // First register the standard vote
             console.log(`Voting ${action} for track ${track.id}`);
@@ -41,13 +48,17 @@
                 
                 // For upvotes, add additional genre-based votes
                 if (action === 'increment') {
+                    processingGenres = true;
                     await addGenreBasedVotes(track);
+                    processingGenres = false;
                 }
                 
                 await refreshLeaderboard();
             }
         } catch (error) {
             console.error('Error in handleVote:', error);
+        } finally {
+            processingVote = false;
         }
     }, 300); // 300ms debounce
     
@@ -158,8 +169,8 @@
 
             if (matchingGenres.length > 0) {
                 // Add a vote to the leaderboard track
-                await voteForTrack(leaderboardTrack.id, 'increment');
-                console.log(`Added a vote to ${leaderboardTrack.name} based on genre match`);
+                await voteForTrack(leaderboardTrack.track.id, 'increment');
+                console.log(`Added a vote to ${leaderboardTrackName} based on genre match`);
             }
         }
     }
@@ -194,7 +205,20 @@
     }
 </script>
 
+<div class="flex flex-col items-center w-full mb-2">
+    {#if processingVote}
+        <div class="text-sm text-yellow-400 font-medium animate-pulse">
+            {#if processingGenres}
+                Finding similar genres...
+            {:else}
+                Voting...
+            {/if}
+        </div>
+    {/if}
+</div>
+
+
 <div class="flex space-x-4 justify-center w-full">
-    <VoteButton track={track} action="increment" userVote={userVote} onClick={handleUpvote} />
-    <VoteButton track={track} action="decrement" userVote={userVote} onClick={handleDownvote} />
+    <VoteButton track={track} action="increment" userVote={userVote} onClick={handleUpvote} disabled={processingVote} />
+    <VoteButton track={track} action="decrement" userVote={userVote} onClick={handleDownvote} disabled={processingVote} />
 </div>
