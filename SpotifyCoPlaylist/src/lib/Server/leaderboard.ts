@@ -122,6 +122,16 @@ class LeaderboardState {
         
         return this.getStatus();
     }
+    
+    async addVotesToTrack(itemId: string, votes: number) {
+        const leaderboard = await this.getLeaderboardData();
+        const existingTrack = leaderboard.find(entry => entry.track.id === itemId);
+        if (existingTrack) {
+            existingTrack.votes += votes;
+            await redis.set(this.LEADERBOARD_KEY, JSON.stringify(leaderboard));
+        }
+        return this.getStatus();
+    }
 
     async sortLeaderboard() {
         const leaderboard = await this.getLeaderboardData();

@@ -1,7 +1,7 @@
 <script lang=ts>
     import { getLastFmToken, getLastFmSimilarTrack, getSimilarTracksInfo, searchForTrackLastFm, getTrackTopTags } from "$lib/lastFmApi";
     import { searchForSong } from "$lib/script";
-    import { addToLeaderboard, addVotesToGenreFromTrack, getGenreTracker, voteForTrack } from "$lib/api";
+    import { addToLeaderboard, addVotesToGenreFromTrack, addVotesToLeaderboard, getGenreTracker, voteForTrack } from "$lib/api";
     import { adminToken, refreshToken } from "$lib/adminTokenManager";
     import { recordVote } from "$lib/voteTracker";
     import type { SpotifyTrack } from "$lib/types";
@@ -129,12 +129,9 @@
             console.log("Most Popular Genre:", mostPopularGenre);
 
             const spotifyTrack = await convertTrackToSpotify(track);
-            // Check if the genre has more than 1 vote
-            if (mostPopularGenre.votes > 1) {
-                for (let i = 0; i < mostPopularGenre.votes; i++) {
-                    await voteForTrack(spotifyTrack.id, "increment")
-                }
-            }
+
+            // Add votes to the genre from the track
+            await addVotesToLeaderboard(spotifyTrack.id, mostPopularGenre.votes);
         } catch (error) {
             console.error("Error adding votes from genre:", error);
             searchError = "Failed to add votes from genre. Please try again.";

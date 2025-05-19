@@ -69,6 +69,29 @@ export async function voteForTrack(trackId: string, action: 'increment' | 'decre
     }
 }
 
+export async function addVotesToLeaderboard(trackId: string, votes: number) {
+    try {
+        const response = await fetch('/api/leaderboard/vote/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ trackId, votes })
+        });
+        if (!response.ok) {
+            console.error('Failed to add votes to leaderboard:', await response.text());
+            throw new Error('Failed to add votes to leaderboard');
+        } else {
+            console.log('Added votes to leaderboard successfully!');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error adding votes to leaderboard:', error);
+        throw error;
+    }
+}
+
 export async function getCurrentSong(token: string): Promise<SpotifyTrack | null> {
     try {
         const response = await fetch ('/api/currentSong', {
