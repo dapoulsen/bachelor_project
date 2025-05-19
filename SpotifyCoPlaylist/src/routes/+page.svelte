@@ -5,10 +5,13 @@
     import { onMount } from "svelte";
     import { getLeaderboard, voteForTrack, getSessionStatus, getSessionType } from "$lib/api";
     import UserCurrentlyPlaying from "$lib/Components/UserCurrentlyPlaying.svelte";
-    import { adminToken } from "$lib/adminTokenManager"; // Import the admin token manager
-    import { hasVotedForTrack, recordVote, getUserVoteForTrack, clearVoteHistory } from "$lib/voteTracker"; // Add this import
+    import { adminToken } from "$lib/adminTokenManager";
+    import { hasVotedForTrack, getUserVoteForTrack, clearVoteHistory } from "$lib/voteTracker";
     import { logUserAction } from "$lib/clientLogger";
     import { browser } from "$app/environment";
+    // Import the new voting components
+    import StandardVoting from "$lib/Components/StandardVoting.svelte";
+    import GenreVoting from "$lib/Components/GenreVoting.svelte";
     
     interface LeaderboardItem {
         track: SpotifyTrack;
@@ -111,56 +114,6 @@
         }
     }
 
-    // Add debounce utility
-    function debounce<F extends (...args: any[]) => any>(func: F, wait: number): (...args: Parameters<F>) => void {
-        let timeout: ReturnType<typeof setTimeout> | null = null;
-        
-        return (...args: Parameters<F>) => {
-            if (timeout) clearTimeout(timeout);
-            timeout = setTimeout(() => func(...args), wait);
-        };
-    }
-    
-    // Create debounced version of handleVote
-    const debouncedVote = debounce(async (track: SpotifyTrack, action: 'increment' | 'decrement') => {
-        try {
-            // Check if user already voted for this track
-            if (hasVotedForTrack(track.id)) {
-                console.log(`User already voted for track ${track.id}`);
-                return;
-            }
-            
-            // Optimistically update UI
-            const tempId = `voting-${track.id}-${Date.now()}`;
-            
-            console.log(`Voting ${action} for track ${track.id}`);
-            const result = await voteForTrack(track.id, action);
-            
-            if (result) {
-                recordVote(track.id, action);
-                console.log('Vote recorded locally');
-                await refreshLeaderboard();
-            }
-        } catch (error) {
-            console.error('Error in handleVote:', error);
-        }
-    }, 300); // 300ms debounce
-    
-    // Use the debounced function in your component
-    async function handleVote(track: SpotifyTrack, action: 'increment' | 'decrement') {
-        // Log the vote action
-        if (userId) {
-            logUserAction(userId, 'vote', { 
-                trackId: track.id,
-                trackName: track.name,
-                voteType: action 
-            });
-        }
-        
-        debouncedVote(track, action);
-    }
-        
-
     async function handleSongAdded(track:SpotifyTrack) {
         console.log("Song added:", track.name);
         
@@ -248,31 +201,19 @@
                     </div>
                     <div class="flex flex-col items-center w-full sm:w-auto sm:items-end">
                         <p class="text-center mb-3">Votes: {item.votes}</p>
-                            {#if userVote}
-                                <!-- Show what the user voted -->
-                                <p class="text-sm text-gray-400 mb-3 text-center">
-                                    You voted: {userVote === 'increment' ? '⬆️ Up' : '⬇️ Down'}
-                                </p>
-                            {/if}
-                            <div class="flex space-x-4 justify-center w-full">
-                                <button 
-                                    id="vote-button-yes"
-                                    class="bg-green-500 hover:bg-green-400 text-white font-bold py-3 sm:py-2 px-5 sm:px-4 rounded shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-300 text-base sm:text-sm {userVote ? 'opacity-50 cursor-not-allowed' : ''} w-35 sm:w-auto"
-                                    onclick={() => handleVote(item.track, 'increment')}
-                                    disabled={!!userVote}
-                                >
-                                    <span>Upvote</span>
-                                </button>
-                            
-                                <button 
-                                    id="vote-button-no"
-                                    class="bg-red-500 hover:bg-red-400 text-white font-bold py-3 sm:py-2 px-5 sm:px-4 rounded shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-300 text-base sm:text-sm {userVote ? 'opacity-50 cursor-not-allowed' : ''} w-35 sm:w-auto"
-                                    onclick={() => handleVote(item.track, 'decrement')}
-                                    disabled={!!userVote}
-                                >
-                                    <span>Downvote</span>
-                                </button>
-                            </div>
+                        {#if userVote}
+                            <!-- Show what the user voted -->
+                            <p class="text-sm text-gray-400 mb-3 text-center">
+                                You voted: {userVote === 'increment' ? '⬆️ Up' : '⬇️ Down'}
+                            </p>
+                        {/if}
+                        
+                        <!-- Conditional rendering based on sessionType -->
+                        {#if sessionType === 'genre'}
+                            <GenreVoting track={item.track} {userId} refreshLeaderboard={refreshLeaderboard} />
+                        {:else}
+                            <StandardVoting track={item.track} {userId} refreshLeaderboard={refreshLeaderboard} />
+                        {/if}
                     </div>
                 </li>
             {/each}

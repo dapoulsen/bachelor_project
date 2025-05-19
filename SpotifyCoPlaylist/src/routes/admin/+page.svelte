@@ -16,7 +16,8 @@
         clearCurrentSong,
         setSessionType,
         clearGenreTracker,
-        clearSessionType
+        clearSessionType,
+        getSessionType
     } from "$lib/api";
     import { 
         skipSong,
@@ -61,6 +62,7 @@
         let sessionStatus = await getSessionStatus(); // Get the session status
         if (sessionStatus === 'active') {
             start = true; // Set start to true if session is active
+            sessionType = await getSessionType(); // Get the session type
         } else {
             start = false; // Set start to false if session is inactive
         }
