@@ -3,7 +3,7 @@
     import { hasVotedForTrack, recordVote, getUserVoteForTrack } from "$lib/voteTracker";
     import { voteForTrack, getGenreTracker, getLeaderboard, addVotesToLeaderboard } from "$lib/api";
     import { logUserAction } from "$lib/clientLogger";
-    import { getTrackTags, getTrackTopTags } from "$lib/lastFmApi";
+    import { getTrackTopTags } from "$lib/lastFmApi";
     import VoteButton from "./VoteButton.svelte";
 
     const { track, userId, refreshLeaderboard } = $props<{
@@ -53,6 +53,9 @@
                     processingGenres = true;
                     await addGenreBasedVotes(track);
                     processingGenres = false;
+                } else if (action === 'decrement') {
+                    // For downvotes, remove genre-based votes
+                    await removeGenreBasedVotes(track);
                 }
                 
                 await refreshLeaderboard();
@@ -175,6 +178,57 @@
                 console.log(`Added a vote to ${leaderboardTrackName} based on genre match`);
             }
         }
+    }
+
+    async function removeGenreBasedVotes(track: SpotifyTrack) {
+        // get track tags from Last.fm
+        const trackName = track.name;
+        const artistName = track.artists[0]?.name || '';
+
+        const trackTagsResponse = await getTrackTopTags(trackName, artistName);
+        if (!trackTagsResponse?.toptags?.tag) {
+            console.log('No tags found for track');
+            return;
+        }
+
+        // get leaderboard data
+        const leaderboardResponse = await getLeaderboard();
+        console.log('LEADERBOARD:', leaderboardResponse);
+        const leaderboard = leaderboardResponse?.list || [];
+        console.log('LEADERBOARD TRACKS:', leaderboard);
+        if (!leaderboard || leaderboard.length === 0) {
+            console.log('No leaderboard data available');
+            return;
+        }
+
+        // Go through each track in the leaderboard
+        for (const leaderboardTrack of leaderboard){
+            // get track tags from Last.fm
+            const leaderboardTrackName = leaderboardTrack.track.name;
+            const leaderboardArtistName = leaderboardTrack.track.artists[0]?.name || '';
+
+            console.log('Fetching tags for leaderboard track:', leaderboardTrackName, 'by', leaderboardArtistName);
+
+            const leaderboardTrackTagsResponse = await getTrackTopTags(leaderboardTrackName, leaderboardArtistName);
+            if (!leaderboardTrackTagsResponse?.toptags?.tag) {
+                console.log('No tags found for leaderboard track');
+                continue;
+            }
+
+            // Check if the genres match
+            const matchingGenres = trackTagsResponse.toptags.tag.filter((tag: any) => 
+                leaderboardTrackTagsResponse.toptags.tag.some((leaderboardTag: any) => 
+                    tag.name.toLowerCase() === leaderboardTag.name.toLowerCase()
+                )
+            );
+
+            if (matchingGenres.length > 0) {
+                // Add a vote to the leaderboard track
+                await voteForTrack(leaderboardTrack.track.id, 'decrement');
+                console.log(`Added a vote to ${leaderboardTrackName} based on genre match`);
+            }
+        }
+        
     }
 
     // Handle vote actions

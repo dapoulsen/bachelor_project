@@ -25,7 +25,7 @@
 <button 
     id="vote-button-{isUpvote ? 'yes' : 'no'}"
     class="{buttonClass} text-white font-bold py-3 sm:py-2 px-5 sm:px-4 rounded shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 text-base sm:text-sm {(userVote || disabled) ? 'opacity-50 cursor-not-allowed' : ''} w-35 sm:w-auto"
-    on:click={onClick}
+    onclick={onClick}
     disabled={!!userVote || disabled}
 >
     <span>{buttonLabel}</span>
