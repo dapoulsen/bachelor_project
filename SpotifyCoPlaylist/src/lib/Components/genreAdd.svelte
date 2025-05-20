@@ -1,7 +1,7 @@
 <script lang=ts>
     import { getLastFmToken, getLastFmSimilarTrack, getSimilarTracksInfo, searchForTrackLastFm, getTrackTopTags } from "$lib/lastFmApi";
     import { searchForSong } from "$lib/script";
-    import { addToLeaderboard, addVotesToGenreFromTrack, addVotesToLeaderboard, getGenreTracker, voteForTrack } from "$lib/api";
+    import { addToLeaderboard, addVotesToGenreFromTrack, addVotesToLeaderboard, getGenreTracker, getLeaderboard, voteForTrack } from "$lib/api";
     import { adminToken, refreshToken } from "$lib/adminTokenManager";
     import { recordVote, hasVotedForTrack } from "$lib/voteTracker";  // Add hasVotedForTrack
     import type { SpotifyTrack } from "$lib/types";
@@ -19,6 +19,11 @@
     let searchError = $state<string | null>(null);
     let processingTrack = $state<string | null>(null);
     let addedTracks = $state<string[]>([]);
+    let addingGenreVotes = $state(false);
+    let addingTrack = $state(false);
+    let addingVotesFromGenre = $state(false);
+    let updatingVotes = $state(false);
+
     // Track the IDs of Spotify tracks that have been added
     let addedSpotifyIds = $state<string[]>([]);
 
@@ -92,11 +97,21 @@
             }
             
             //Add track tags to genreTracker
+            addingGenreVotes = true;
             await addTrackTagsToGenreTracker(track);
+            addingGenreVotes = false;
             //Add track to leaderboard
+            addingTrack = true;
             await addTrackToLeaderboard(track, spotifyTrack);
+            addingTrack = false;
             //Add genre votes to leaderboard votes
+            addingVotesFromGenre = true;
             await addVotesFromGenre(track, spotifyTrack);
+            addingVotesFromGenre = false;
+            //Update other songs votes
+            updatingVotes = true;
+            await updateLeaderboardVotes(track);
+            updatingVotes = false;
             
             // Record the user's vote for this track
             recordVote(spotifyTrack.id, 'increment');
@@ -163,6 +178,51 @@
         } catch (error) {
             console.error("Error adding votes from genre:", error);
             searchError = "Failed to add votes from genre. Please try again.";
+        }
+    }
+
+    async function updateLeaderboardVotes(track: any) {
+        try{
+            // Get the track tags
+            const trackTagsResponse = await getTrackTopTags(track.name, track.artist);
+            const genreTracker = await getGenreTracker();
+
+            // Get the leaderboard tracks
+            const leaderboard = await getLeaderboard();
+            const leaderboardTracks = leaderboard.list.map((item: any) => item.track);
+
+            // for each track
+            // Get each track's most upvoted matching genre
+            leaderboardTracks.forEach((spotifyTrack: { id: string, name: string; }) => {
+
+                // If track is the same as the one being added, skip
+                if (spotifyTrack.name === track.name) {
+                    return;
+                }
+                
+
+                const matchingGenres = genreTracker.genreTracker.filter((genre: any) => {
+                    return trackTagsResponse.toptags.tag.some((tag: any) => tag.name === genre.genre);
+                });
+
+                if (matchingGenres.length === 0) {
+                    console.log("No matching genres found");
+                    return;
+                }
+
+                // Reduce to the track tag with the most votes
+                const mostPopularGenre = matchingGenres.reduce((prev: any, current: any) => {
+                    return (prev.votes > current.votes) ? prev : current;
+                }, { votes: 0 });
+                
+                // Add votes to the genre from the track
+                addVotesToLeaderboard(spotifyTrack.id, mostPopularGenre.votes);
+                
+            });
+
+        } catch (error) {
+            console.error("Error updating leaderboard votes:", error);
+            searchError = "Failed to update leaderboard votes. Please try again.";
         }
     }
 
@@ -258,6 +318,15 @@
                     >
                         {#if processingTrack === track.name}
                             ⏳ Adding...
+                            {#if addingGenreVotes}
+                                <span class="text-yellow-400"> (Adding Genre Votes)</span>
+                            {:else if addingTrack}
+                                <span class="text-yellow-400"> (Adding Track to lLeaderboard)</span>
+                            {:else if addingVotesFromGenre}
+                                <span class="text-yellow-400"> (Adding Additional Votes from Genre)</span>
+                            {:else if updatingVotes}
+                                <span class="text-yellow-400"> (Updating Leaderboard Votes from Genre)</span>
+                            {/if}
                         {:else if isAdded}
                             ✓ Added
                         {:else}
