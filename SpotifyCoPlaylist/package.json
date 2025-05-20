@@ -10,7 +10,7 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"export-logs": "node -r esbuild-register src/scripts/export-logs.ts",
-    	"clear-logs": "node -r esbuild-register src/scripts/clear-logs.ts"
+		"clear-logs": "node -r esbuild-register src/scripts/clear-logs.ts"
 	},
 	"files": [
 		"dist",
@@ -41,6 +41,7 @@
 		"@tailwindcss/typography": "^0.5.15",
 		"@tailwindcss/vite": "^4.0.12",
 		"@types/node": "^22.15.12",
+		"esbuild-register": "^3.6.0",
 		"publint": "^0.3.2",
 		"svelte": "^5.0.0",
 		"svelte-check": "^4.0.0",
