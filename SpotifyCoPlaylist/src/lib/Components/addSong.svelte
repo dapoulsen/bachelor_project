@@ -121,7 +121,7 @@
             type="text"
             onkeydown="{(e) => e.key === 'Enter' && searchSongs()}"
             placeholder="Search for a song..."
-            class="w-full p-3 rounded-lg bg-gray-800 text-white placeholder-gray-400"
+            class="w-full p-3 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-10 focus:ring-green-500"
         />
         <button 
             class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105"
@@ -175,3 +175,4 @@
         </ul>
     {/if}
 </div>
+
