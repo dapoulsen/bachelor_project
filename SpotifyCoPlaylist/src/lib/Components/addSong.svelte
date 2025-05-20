@@ -142,10 +142,10 @@
     {#if searchResults}
         <button 
             id="close_search"
-            class="bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-transform transform hover:scale-105"
+            class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-transform transform hover:scale-105"
             onclick={closeSearch}
         >
-            ❌ Close
+            Close
         </button>
 
         <!-- Search Results -->
@@ -175,15 +175,3 @@
         </ul>
     {/if}
 </div>
-
-<style>
-    input:focus {
-        outline: none;
-        box-shadow: 0 0 0 2px rgb(34, 197, 94);
-    }
-
-    input:focus:focus-visible {
-        outline: none;
-    }
-
-</style>
