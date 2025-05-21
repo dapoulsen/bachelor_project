@@ -166,30 +166,3 @@
         </div>
     {/if}
 </div>
-
-<style>
-    progress {
-        display: block;
-        width: 100%;
-        height: 8px;
-        border-radius: 4px;
-        overflow: hidden;
-        background-color: #333;
-    }
-    
-    progress::-webkit-progress-bar {
-        background-color: #333;
-        border-radius: 4px;
-    }
-    
-    progress::-webkit-progress-value {
-        background-color: #1DB954; /* Spotify green */
-        border-radius: 4px;
-        transition: width 0.1s linear;
-    }
-    
-    progress::-moz-progress-bar {
-        background-color: #1DB954;
-        border-radius: 4px;
-    }
-</style>

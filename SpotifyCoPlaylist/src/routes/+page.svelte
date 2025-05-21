@@ -5,7 +5,6 @@
     import { onMount } from "svelte";
     import { getLeaderboard, voteForTrack, getSessionStatus, getSessionType } from "$lib/api";
     import UserCurrentlyPlaying from "$lib/Components/UserCurrentlyPlaying.svelte";
-    import { adminToken } from "$lib/adminTokenManager";
     import { hasVotedForTrack, getUserVoteForTrack, clearVoteHistory } from "$lib/voteTracker";
     import { logUserAction } from "$lib/clientLogger";
     import { browser } from "$app/environment";

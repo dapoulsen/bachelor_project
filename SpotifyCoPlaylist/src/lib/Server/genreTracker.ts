@@ -30,7 +30,6 @@ const GENRE_TRACKER_KEY = 'genre_tracker';
 export async function getGenreTrackerData(): Promise<Array< { genre: string, votes: number }>> {
     try{ 
             let data = await redis.get(GENRE_TRACKER_KEY);
-            console.log('GenreData from Redis:', data);
             
             // Check if data exists and is a non-empty string
             if (data) {
