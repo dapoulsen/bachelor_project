@@ -44,11 +44,7 @@
             const result = await voteForTrack(track.id, action);
             
             if (result) {
-                recordVote(track.id, action);
-                // Update the userVote state to reflect the new vote
-                userVote = action;
-                console.log('Vote recorded locally');
-                
+                                
                 // For upvotes, add additional genre-based votes
                 if (action === 'increment') {
                     processingGenres = true;
@@ -60,6 +56,11 @@
                 }
                 
                 await refreshLeaderboard();
+                recordVote(track.id, action);
+                // Update the userVote state to reflect the new vote
+                userVote = action;
+                console.log('Vote recorded locally');
+
             }
         } catch (error) {
             console.error('Error in handleVote:', error);
