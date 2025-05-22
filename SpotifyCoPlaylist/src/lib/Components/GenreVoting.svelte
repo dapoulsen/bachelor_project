@@ -5,6 +5,7 @@
     import { logUserAction } from "$lib/clientLogger";
     import { getTrackTopTags } from "$lib/lastFmApi";
     import VoteButton from "./VoteButton.svelte";
+    import { MusicGenres } from "$lib/musicGenres";
 
     const { track, userId, refreshLeaderboard } = $props<{
         track: SpotifyTrack;
@@ -75,8 +76,9 @@
             const artistName = track.artists[0]?.name || '';
             console.log('Fetching track tags for:', trackName, 'by', artistName);
             const trackTagsResponse = await getTrackTopTags(trackName, artistName);
+            const filteredTags = filterTrackTags(trackTagsResponse?.toptags?.tag || []);
             
-            if (!trackTagsResponse?.toptags?.tag) {
+            if (!filteredTags) {
                 console.log('No tags found for track');
                 return;
             }
@@ -90,12 +92,12 @@
                 return;
             }
             
-            console.log('Track tags:', trackTagsResponse.toptags.tag);
+            console.log('Track tags:', filteredTags);
             console.log('Genre tracker:', genreTracker);
             
             // Find matching genres between track tags and genre tracker
             const matchingGenres = genreTracker.filter((genreItem: any) => 
-                trackTagsResponse.toptags.tag.some((tag: any) => 
+                filteredTags.some((tag: any) => 
                     tag.name.toLowerCase() === genreItem.genre.toLowerCase()
                 )
             );
@@ -136,7 +138,8 @@
         const artistName = track.artists[0]?.name || '';
 
         const trackTagsResponse = await getTrackTopTags(trackName, artistName);
-        if (!trackTagsResponse?.toptags?.tag) {
+        const filteredTags = filterTrackTags(trackTagsResponse?.toptags?.tag || []);
+        if (!filteredTags) {
             console.log('No tags found for track');
             return;
         }
@@ -160,14 +163,15 @@
             console.log('Fetching tags for leaderboard track:', leaderboardTrackName, 'by', leaderboardArtistName);
 
             const leaderboardTrackTagsResponse = await getTrackTopTags(leaderboardTrackName, leaderboardArtistName);
-            if (!leaderboardTrackTagsResponse?.toptags?.tag) {
+            const filteredLeaderboardTags = filterTrackTags(leaderboardTrackTagsResponse?.toptags?.tag || []);
+            if (!filteredLeaderboardTags) {
                 console.log('No tags found for leaderboard track');
                 continue;
             }
 
             // Check if the genres match
-            const matchingGenres = trackTagsResponse.toptags.tag.filter((tag: any) => 
-                leaderboardTrackTagsResponse.toptags.tag.some((leaderboardTag: any) => 
+            const matchingGenres = filteredTags.filter((tag: any) => 
+                filteredLeaderboardTags.some((leaderboardTag: any) => 
                     tag.name.toLowerCase() === leaderboardTag.name.toLowerCase()
                 )
             );
@@ -186,7 +190,8 @@
         const artistName = track.artists[0]?.name || '';
 
         const trackTagsResponse = await getTrackTopTags(trackName, artistName);
-        if (!trackTagsResponse?.toptags?.tag) {
+        const filteredTags = filterTrackTags(trackTagsResponse?.toptags?.tag || []);
+        if (!filteredTags) {
             console.log('No tags found for track');
             return;
         }
@@ -210,14 +215,15 @@
             console.log('Fetching tags for leaderboard track:', leaderboardTrackName, 'by', leaderboardArtistName);
 
             const leaderboardTrackTagsResponse = await getTrackTopTags(leaderboardTrackName, leaderboardArtistName);
-            if (!leaderboardTrackTagsResponse?.toptags?.tag) {
+            const filteredLeaderboardTags = filterTrackTags(leaderboardTrackTagsResponse?.toptags?.tag || []);
+            if (!filteredLeaderboardTags) {
                 console.log('No tags found for leaderboard track');
                 continue;
             }
 
             // Check if the genres match
-            const matchingGenres = trackTagsResponse.toptags.tag.filter((tag: any) => 
-                leaderboardTrackTagsResponse.toptags.tag.some((leaderboardTag: any) => 
+            const matchingGenres = filteredTags.filter((tag: any) => 
+                filteredLeaderboardTags.some((leaderboardTag: any) => 
                     tag.name.toLowerCase() === leaderboardTag.name.toLowerCase()
                 )
             );
@@ -229,6 +235,14 @@
             }
         }
         
+    }
+
+    function filterTrackTags(trackTags: any[]): any[] {
+        // Filter out tags to only contain those matching MusigGenres array
+        const filteredTags = trackTags.filter((tag: any) => {
+            return MusicGenres.some((genre: string) => genre.toLowerCase() === tag.name.toLowerCase());
+        });
+        return filteredTags;
     }
 
     // Handle vote actions
