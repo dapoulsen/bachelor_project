@@ -23,6 +23,12 @@ export const MusicGenres = [
   'k-pop',
   'singer-songwriter',
   'dance',
-  'funk'
+  'funk',
+  'reggae',
+  'blues',
+  'soul',
+  'latin',
+  'classical',
+  'k-pop'
 ];
 
