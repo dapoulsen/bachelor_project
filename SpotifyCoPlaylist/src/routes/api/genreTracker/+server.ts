@@ -23,7 +23,7 @@ export const POST: RequestHandler = async ({ request}) => {
     try {
         const data = await request.json();
 
-        if (!data || !data.toptags.tag) {
+        if (!data || !Array.isArray(data) || data.length === 0) {
             console.error('POST genre-tracker: No tags provided');
             return json({
                 success: false,

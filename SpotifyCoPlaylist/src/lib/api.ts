@@ -398,7 +398,7 @@ export async function getGenreTracker() {
     }
 }
 
-export async function addVotesToGenreFromTrack(tags: any) {
+export async function addVotesToGenreFromTrack(tags: any[]) {
     try {
         console.log('Adding votes to genre:', tags);
         const res = await fetch("api/genreTracker", {

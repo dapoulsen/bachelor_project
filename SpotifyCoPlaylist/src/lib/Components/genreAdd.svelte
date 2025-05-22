@@ -5,6 +5,7 @@
     import { adminToken, refreshToken } from "$lib/adminTokenManager";
     import { recordVote, hasVotedForTrack } from "$lib/voteTracker";  // Add hasVotedForTrack
     import type { SpotifyTrack } from "$lib/types";
+    import { MusicGenres } from "$lib/musicGenres";
     import { onMount } from "svelte";
     
     const lastFmToken = getLastFmToken();
@@ -128,7 +129,8 @@
     
     async function addTrackTagsToGenreTracker(track: any) {
         const trackTags = await getTrackTopTags(track.name, track.artist);
-        await addVotesToGenreFromTrack(trackTags);
+        const filteredTags = filterTrackTags(trackTags.toptags.tag);
+        await addVotesToGenreFromTrack(filteredTags);
     }
 
     async function addTrackToLeaderboard(track: any, spotifyTrack: SpotifyTrack) {
@@ -145,6 +147,7 @@
     async function addVotesFromGenre(track: any, spotifyTrack: SpotifyTrack) {
         try {
             const trackTagsResponse = await getTrackTopTags(track.name, track.artist);
+            const filteredTags = filterTrackTags(trackTagsResponse.toptags.tag);
             const genreTracker = await getGenreTracker();
             console.log("Genre Tracker:", genreTracker);
 
@@ -158,7 +161,7 @@
             console.log("Genre Votes:", genreVotes);
             //check which track tag matches the genreTracker
             const matchingGenres = genreVotes.filter((genre: any) => {
-                return trackTagsResponse.toptags.tag.some((tag: any) => tag.name === genre.name);
+                return filteredTags.some((tag: any) => tag.name === genre.name);
             });
             console.log("Matching Genres:", matchingGenres);
             
@@ -185,6 +188,7 @@
         try{
             // Get the track tags
             const trackTagsResponse = await getTrackTopTags(track.name, track.artist);
+            const filteredTags = filterTrackTags(trackTagsResponse.toptags.tag);
             const genreTracker = await getGenreTracker();
 
             // Get the leaderboard tracks
@@ -202,7 +206,7 @@
                 
 
                 const matchingGenres = genreTracker.genreTracker.filter((genre: any) => {
-                    return trackTagsResponse.toptags.tag.some((tag: any) => tag.name === genre.genre);
+                    return filteredTags.some((tag: any) => tag.name === genre.genre);
                 });
 
                 if (matchingGenres.length === 0) {
@@ -224,6 +228,14 @@
             console.error("Error updating leaderboard votes:", error);
             searchError = "Failed to update leaderboard votes. Please try again.";
         }
+    }
+
+    function filterTrackTags(trackTags: any[]): any[] {
+        // Filter out tags to only contain those matching MusigGenres array
+        const filteredTags = trackTags.filter((tag: any) => {
+            return MusicGenres.some((genre: string) => genre.toLowerCase() === tag.name.toLowerCase());
+        });
+        return filteredTags;
     }
 
     async function convertTrackToSpotify(track: any): Promise<SpotifyTrack> {

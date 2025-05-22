@@ -49,10 +49,10 @@ export async function getGenreTrackerData(): Promise<Array< { genre: string, vot
         }
 }
 
-export async function addVotesToGenreFromTrack(tags: TrackTagsResponse): Promise<void> {
+export async function addVotesToGenreFromTrack(tags: any[]): Promise<void> {
     try {
         let genreTracker = await getGenreTrackerData();
-        for (let tag of tags.toptags.tag) {
+        for (let tag of tags) {
             let genre = tag.name;
             let existingGenre = genreTracker.find((g) => g.genre === genre);
             if (existingGenre) {

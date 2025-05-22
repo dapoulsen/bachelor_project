@@ -298,32 +298,3 @@ export interface SpotifyPlayerResponse {
     transferring_playback: boolean;
   };
 }
-
-export const MusicGenres: MusicGenre[] = [
-  'pop',
-  'rap',
-  'rnb',
-  'dance-pop',
-  'dance pop',
-  'sexy',
-  'hip hop',
-  'Hip-Hop',
-  'danish',
-  'dansk',
-  'alternative rock',
-  'rock',
-  'country',
-  'metal',
-  'punk',
-  'electronic',
-  'EDM',
-  'House',
-  'techno',
-  'indie',
-  'jazz',
-  'k-pop',
-  'singer-songwriter',
-  'dance',
-  'funk'
-];
-
