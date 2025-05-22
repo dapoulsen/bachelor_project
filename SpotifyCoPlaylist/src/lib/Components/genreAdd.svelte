@@ -96,6 +96,9 @@
                 addedSpotifyIds.push(spotifyTrack.id);
                 return;
             }
+             
+            // Record the user's vote for this track
+            recordVote(spotifyTrack.id, 'increment');
             
             //Add track tags to genreTracker
             addingGenreVotes = true;
@@ -113,10 +116,7 @@
             updatingVotes = true;
             await updateLeaderboardVotes(track);
             updatingVotes = false;
-            
-            // Record the user's vote for this track
-            recordVote(spotifyTrack.id, 'increment');
-            
+           
             // Add to tracked IDs
             addedSpotifyIds.push(spotifyTrack.id);
         } catch (error) {
