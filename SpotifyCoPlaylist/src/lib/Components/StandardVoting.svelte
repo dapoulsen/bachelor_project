@@ -40,10 +40,9 @@
             const result = await voteForTrack(track.id, action);
             
             if (result) {
-               
-                await refreshLeaderboard();
                 recordVote(track.id, action);
                 console.log('Vote recorded locally');
+                await refreshLeaderboard();
             }
         } catch (error) {
             console.error('Error in handleVote:', error);
