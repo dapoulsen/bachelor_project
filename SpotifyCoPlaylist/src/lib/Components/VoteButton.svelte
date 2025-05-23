@@ -15,23 +15,23 @@
         disabled?: boolean;
     }>();
 
-    // Check if the user has already voted for this track
-    const hasVoted = userVote !== null;
+    // Use $derived for all computed values so they update when dependencies change
+    let hasVoted = $derived(userVote !== null);
     
-    // Determine if this button should be active based on the user's vote
-    const isActiveVote = userVote === action;
+    let isActiveVote = $derived(userVote === action);
     
-    const isUpvote = action === 'increment';
+    let isUpvote = $derived(action === 'increment');
     
     // Enhance button styling to show active state
-    const buttonClass = isUpvote 
+    let buttonClass = $derived(isUpvote 
         ? `bg-green-500 hover:bg-green-400 focus:ring-green-300 ${isActiveVote ? 'ring-2 ring-white' : ''}` 
-        : `bg-red-500 hover:bg-red-400 focus:ring-red-300 ${isActiveVote ? 'ring-2 ring-white' : ''}`;
+        : `bg-red-500 hover:bg-red-400 focus:ring-red-300 ${isActiveVote ? 'ring-2 ring-white' : ''}`);
     
-    const buttonLabel = isUpvote ? 'Upvote' : 'Downvote';
+    let buttonLabel = $derived(isUpvote ? 'Upvote' : 'Downvote');
     
     // Button should be disabled if user has voted or if disabled prop is true
-    const isDisabled = hasVoted || disabled;
+    let isDisabled = $derived(hasVoted || disabled);
+    
 </script>
 
 <button 
