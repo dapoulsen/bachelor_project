@@ -4,7 +4,6 @@
     import { voteForTrack } from "$lib/api";
     import { logUserAction } from "$lib/clientLogger";
     import VoteButton from "./VoteButton.svelte";
-    import { get } from "http";
 
     const { track, userId, refreshLeaderboard } = $props<{
         track: SpotifyTrack;
@@ -14,7 +13,6 @@
 
     // Make this reactive - it will update whenever track changes
     let userVote = $state(getUserVoteForTrack(track.id));
-    $effect(() => {userVote = getUserVoteForTrack(track.id)});
 
     let processingVote = $state(false);
 
@@ -44,6 +42,7 @@
             
             if (result) {
                 recordVote(track.id, action);
+                userVote = action; // Update userVote state
                 console.log('Vote recorded locally');
                 await refreshLeaderboard();
             }
