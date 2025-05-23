@@ -186,7 +186,7 @@
         <p class="text-gray-400 mt-4">No songs in leaderboard</p>
     {:else}
         <ul class="mt-6 w-full max-w-3xl space-y-4">
-            {#each leaderboardState.list as item}   
+            {#each leaderboardState.list as item (item.track.id)}   
             {@const userVote = getUserVoteForTrack(item.track.id)}
                 <li class="bg-gray-800 p-4 rounded-lg flex flex-col items-center sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 shadow-md {hasVotedForTrack(item.track.id) ? 'border border-gray-600' : ''}">
                     <img 
