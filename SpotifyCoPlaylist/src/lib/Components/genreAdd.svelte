@@ -176,7 +176,7 @@
             }, { votes: 0 });
             console.log("Most Popular Genre:", mostPopularGenre);
 
-            // Add votes to the genre from the track
+            // Add votes to the track from the genre
             await addVotesToLeaderboard(spotifyTrack.id, mostPopularGenre.votes);
         } catch (error) {
             console.error("Error adding votes from genre:", error);
