@@ -1,8 +1,9 @@
 {
   "dependencies": {
+    "@upstash/redis": "^1.35.3",
     "cookie": "^1.0.2"
   },
-  "scripts":{
+  "scripts": {
     "export-logs": "node -r esbuild-register src/scripts/export-logs.ts",
     "clear-logs": "node -r esbuild-register src/scripts/clear-logs.ts"
   }
